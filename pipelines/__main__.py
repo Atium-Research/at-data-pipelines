@@ -18,4 +18,4 @@ from prefect import flow
 
 
 if __name__ == "__main__":
-    calendar_backfill_flow().serve(cron="* * * * *")
+    calendar_backfill_flow.serve(cron="* * * * *")
