@@ -3,4 +3,4 @@ builder = "RAILPACK"
 buildCommand = "uv sync"
 
 [deploy]
-startCommand = "uv run python -m pipelines"
+startCommand = "uv run python pipelines"
