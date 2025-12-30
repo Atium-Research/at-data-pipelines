@@ -1209,7 +1209,6 @@ dependencies = [
     { name = "beautifulsoup4" },
     { name = "clickhouse-connect" },
     { name = "lxml" },
-    { name = "matplotlib" },
     { name = "pandas" },
     { name = "pandas-market-calendars" },
     { name = "polars" },
@@ -1217,6 +1216,12 @@ dependencies = [
     { name = "pyarrow" },
     { name = "python-dotenv" },
     { name = "requests" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "matplotlib" },
+    { name = "rich" },
     { name = "seaborn" },
 ]
 
@@ -1226,7 +1231,6 @@ requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.14.3" },
     { name = "clickhouse-connect", specifier = ">=0.10.0" },
     { name = "lxml", specifier = ">=6.0.2" },
-    { name = "matplotlib", specifier = ">=3.10.8" },
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "pandas-market-calendars", specifier = ">=5.2.3" },
     { name = "polars", specifier = ">=1.36.1" },
@@ -1234,6 +1238,12 @@ requires-dist = [
     { name = "pyarrow", specifier = ">=22.0.0" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "requests", specifier = ">=2.32.5" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "matplotlib", specifier = ">=3.10.8" },
+    { name = "rich", specifier = ">=14.2.0" },
     { name = "seaborn", specifier = ">=0.13.2" },
 ]
 

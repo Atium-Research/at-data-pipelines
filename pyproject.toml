@@ -9,7 +9,6 @@ dependencies = [
     "beautifulsoup4>=4.14.3",
     "clickhouse-connect>=0.10.0",
     "lxml>=6.0.2",
-    "matplotlib>=3.10.8",
     "pandas>=2.3.3",
     "pandas-market-calendars>=5.2.3",
     "polars>=1.36.1",
@@ -17,5 +16,11 @@ dependencies = [
     "pyarrow>=22.0.0",
     "python-dotenv>=1.2.1",
     "requests>=2.32.5",
+]
+
+[dependency-groups]
+dev = [
+    "matplotlib>=3.10.8",
+    "rich>=14.2.0",
     "seaborn>=0.13.2",
 ]
