@@ -11,7 +11,7 @@ def get_clickhouse_client():
     password = os.getenv("CLICKHOUSE_PASSWORD")
     secure = os.getenv("SECURE")
 
-    if not (host and port and username and password):
+    if not (host and port and username and password and secure):
         raise RuntimeError(
             f"""
             Environment variables not set:
@@ -19,6 +19,7 @@ def get_clickhouse_client():
                 PORT: {port}
                 CLICKHOUSE_USER: {username}
                 CLICKHOUSE_PASSWORD: {password}
+                SECURE: {secure}
             """
         )
 
