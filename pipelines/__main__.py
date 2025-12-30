@@ -5,9 +5,9 @@ from prefect.schedules import Cron
 import datetime as dt
 
 @flow
-def daily_flow(start: dt.date = dt.date(1957, 3, 1), end: dt.date = dt.date.today()):
+def daily_flow():
     """Run calendar backfill, then universe backfill sequentially."""
-    calendar_backfill_flow(start, end)
+    calendar_backfill_flow()
     universe_backfill_flow()
 
 if __name__ == "__main__":
