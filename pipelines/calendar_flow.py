@@ -50,7 +50,9 @@ def upload_calendar_df(calendar_df: pl.DataFrame):
     clickhouse_client.insert_df_arrow(table=table_name, df=calendar_df)
 
 @flow
-def calendar_backfill_flow(start: dt.date = dt.date(1957, 3, 1), end: dt.date = dt.date.today()):
+def calendar_backfill_flow():
+    start= dt.date(1957, 3, 1)
+    end = dt.date.today() - dt.timedelta(days=1) # yesterday
     calendar_df = get_market_calendar(start, end)
     upload_calendar_df(calendar_df)
     
