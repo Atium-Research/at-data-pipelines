@@ -28,6 +28,7 @@ def get_market_calendar(start: dt.date, end: dt.date) -> pl.DataFrame:
 @flow
 def calendar_backfill_flow(start: dt.date = dt.date(1957, 3, 1), end: dt.date = dt.date.today()):
     print(start, end)
+    print(start, end)
     calendar_df = get_market_calendar(start, end)
     table_name = "calendar"
 
