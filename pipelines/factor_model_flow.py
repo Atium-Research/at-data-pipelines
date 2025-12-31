@@ -1,5 +1,5 @@
 import polars as pl
-from pipelines.clients import get_clickhouse_client
+from clients import get_clickhouse_client
 import datetime as dt
 from statsmodels.regression.rolling import RollingOLS
 import statsmodels.api as sm
