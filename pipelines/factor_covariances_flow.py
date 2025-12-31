@@ -88,7 +88,7 @@ def upload_and_merge_factor_covariances(factor_covariances: pl.DataFrame):
 @flow
 def factor_covariances_backfill_flow():
     start = dt.date(2020, 7, 28)
-    end = dt.date(2025, 12, 29)
+    end = dt.date.today()
 
     etf_returns = get_etf_returns(start, end)
 

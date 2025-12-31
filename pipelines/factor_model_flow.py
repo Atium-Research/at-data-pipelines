@@ -192,7 +192,7 @@ def upload_and_merge_idio_vol(idio_vol: pl.DataFrame) -> pl.DataFrame:
 @flow
 def factor_model_backfill_flow():
     start = dt.date(2020, 7, 28)
-    end = dt.date(2025, 12, 29)
+    end = dt.date.today()
 
     stock_returns = get_stock_returns(start, end)
     etf_returns = get_etf_returns(start, end)

@@ -46,7 +46,7 @@ def get_etf_prices(
         pl.col("symbol").alias("ticker"),
         pl.col("timestamp")
         .dt.replace_time_zone("UTC")
-        .dt.convert_time_zone("America/New_York")
+        .dt.convert_time_zone("America/Denver")
         .dt.date()
         .cast(pl.String)
         .alias("date"),
@@ -135,6 +135,9 @@ def etf_prices_daily_flow():
         dt.datetime.now(ZoneInfo("America/Denver"))
         - dt.timedelta(days=1)
     ).date()
+
+    print("Last Market Date:", last_market_date)
+    print("Yesterday:", yesterday)
 
     # Only get new data if yesterday was the last market date
     if last_market_date != yesterday:
