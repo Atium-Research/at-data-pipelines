@@ -7,7 +7,7 @@ import polars as pl
 from prefect import flow, task
 from zoneinfo import ZoneInfo
 
-TICKERS = ["MTUM", "QUAL", "SIZE", "USMV", "VLUE"]
+TICKERS = ["MTUM", "QUAL", "USMV", "VLUE", "SPY"]
 
 @task
 def get_etf_prices(tickers: list[str], start: dt.datetime, end: dt.datetime) -> pl.DataFrame:
@@ -129,7 +129,3 @@ def etf_prices_daily_flow():
     stock_prices_df = get_etf_prices_batches(TICKERS, start, end)
 
     upload_and_merge_etf_prices_df(stock_prices_df)
-
-if __name__ == '__main__':
-    # etf_prices_backfill_flow()
-    etf_prices_daily_flow()
