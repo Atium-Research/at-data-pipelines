@@ -8,6 +8,7 @@ from factor_covariances_flow import (
     factor_covariances_backfill_flow,
     factor_covariances_daily_flow,
 )
+from reversal_flow import reversal_backfill_flow, reversal_daily_flow
 from prefect import flow, serve
 from prefect.schedules import Cron
 
@@ -15,12 +16,13 @@ from prefect.schedules import Cron
 @flow
 def daily_flow():
     calendar_backfill_flow()
-    universe_backfill_flow()
-    stock_prices_daily_flow()
-    etf_prices_daily_flow()
-    returns_backfill_flow()
-    factor_model_daily_flow()
-    factor_covariances_daily_flow()
+    universe_backfill_flow()  # Depends on calendar
+    stock_prices_daily_flow()  # Depends on universe
+    etf_prices_daily_flow()  # Depends on calendar
+    returns_backfill_flow()  # Depends on stock_prices and etf_prices
+    factor_model_daily_flow()  # Depends on stock_returns and etf_returns
+    factor_covariances_daily_flow()  # Depends on etf_returns
+    reversal_daily_flow()  # Depends on stock_returns and factor_model
 
 
 if __name__ == "__main__":
@@ -37,4 +39,5 @@ if __name__ == "__main__":
         factor_covariances_backfill_flow.to_deployment(
             name="factor-covariances-backfill-flow"
         ),
+        reversal_backfill_flow.to_deployment(name="reversal-backfill-flow"),
     )

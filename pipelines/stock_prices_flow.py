@@ -142,8 +142,7 @@ def get_last_market_date() -> dt.date:
 def stock_prices_daily_flow():
     last_market_date = get_last_market_date()
     yesterday = (
-        dt.datetime.now(ZoneInfo("America/Denver"))
-        - dt.timedelta(days=1)
+        dt.datetime.now(ZoneInfo("America/Denver")) - dt.timedelta(days=1)
     ).date()
 
     print("Last Market Date:", last_market_date)
