@@ -25,11 +25,24 @@ def daily_flow():
     reversal_daily_flow()  # Depends on stock_returns and factor_model
 
 
+@flow
+def backfill_flow():
+    calendar_backfill_flow()
+    universe_backfill_flow()  # Depends on calendar
+    stock_prices_backfill_flow()  # Depends on universe
+    etf_prices_backfill_flow()  # Depends on calendar
+    returns_backfill_flow()  # Depends on stock_prices and etf_prices
+    factor_model_backfill_flow()  # Depends on stock_returns and etf_returns
+    factor_covariances_backfill_flow()  # Depends on etf_returns
+    reversal_backfill_flow()  # Depends on stock_returns and factor_model
+
+
 if __name__ == "__main__":
     serve(
         daily_flow.to_deployment(
             name="daily-flow", schedule=Cron("0 2 * * *", timezone="America/Denver")
         ),
+        backfill_flow.to_deployment(name="backfill-flow"),
         calendar_backfill_flow.to_deployment(name="calendar-backfill-flow"),
         universe_backfill_flow.to_deployment(name="universe-backfill-flow"),
         stock_prices_backfill_flow.to_deployment(name="stock-prices-backfill-flow"),

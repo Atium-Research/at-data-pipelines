@@ -7,6 +7,7 @@ import polars as pl
 from prefect import flow, task
 from variables import TIME_ZONE
 
+
 @task
 def get_tickers() -> list[str]:
     clickhouse_client = get_clickhouse_client()
@@ -52,10 +53,7 @@ def get_stock_prices(
 
     stock_prices_clean = pl.from_pandas(stock_prices_raw.df.reset_index()).select(
         pl.col("symbol").alias("ticker"),
-        pl.col("timestamp")
-        .dt.date()
-        .cast(pl.String)
-        .alias("date"),
+        pl.col("timestamp").dt.date().cast(pl.String).alias("date"),
         "open",
         "high",
         "low",
@@ -119,9 +117,7 @@ def upload_and_merge_stock_prices_df(stock_prices_df: pl.DataFrame):
 @flow
 def stock_prices_backfill_flow():
     start = dt.datetime(2017, 1, 1, tzinfo=TIME_ZONE)
-    end = dt.datetime.today().replace(tzinfo=TIME_ZONE) - dt.timedelta(
-        days=1
-    )
+    end = dt.datetime.today().replace(tzinfo=TIME_ZONE) - dt.timedelta(days=1)
 
     tickers = get_tickers()
     stock_prices_df = get_stock_prices_batches(tickers, start, end)
@@ -138,9 +134,7 @@ def get_last_market_date() -> dt.date:
 @flow
 def stock_prices_daily_flow():
     last_market_date = get_last_market_date()
-    yesterday = (
-        dt.datetime.now(TIME_ZONE) - dt.timedelta(days=1)
-    ).date()
+    yesterday = (dt.datetime.now(TIME_ZONE) - dt.timedelta(days=1)).date()
 
     # Only get new data if yesterday was the last market date
     if last_market_date != yesterday:
@@ -149,12 +143,8 @@ def stock_prices_daily_flow():
         print("Yesterday:", yesterday)
         return
 
-    start = dt.datetime.combine(yesterday, dt.time(0, 0, 0)).replace(
-        tzinfo=TIME_ZONE
-    )
-    end = dt.datetime.combine(yesterday, dt.time(23, 59, 59)).replace(
-        tzinfo=TIME_ZONE
-    )
+    start = dt.datetime.combine(yesterday, dt.time(0, 0, 0)).replace(tzinfo=TIME_ZONE)
+    end = dt.datetime.combine(yesterday, dt.time(23, 59, 59)).replace(tzinfo=TIME_ZONE)
 
     tickers = get_tickers()
     stock_prices_df = get_stock_prices_batches(tickers, start, end)

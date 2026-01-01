@@ -52,11 +52,9 @@ def clean_current_constituents_df(
 ) -> pl.DataFrame:
     return (
         pl.from_pandas(current_constituents_df)
-        .select(
-            pl.col('Symbol').alias('ticker')
-        )
+        .select(pl.col("Symbol").alias("ticker"))
         .drop_nulls("ticker")
-        .sort('ticker')
+        .sort("ticker")
     )
 
 
@@ -193,5 +191,6 @@ def universe_backfill_flow():
 
     upload_universe_df(universe_df)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     universe_backfill_flow()

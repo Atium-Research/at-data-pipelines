@@ -5,7 +5,7 @@ from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 import datetime as dt
 import polars as pl
 from prefect import flow, task
-from zoneinfo import ZoneInfo
+from variables import TIME_ZONE
 
 TICKERS = ["MTUM", "QUAL", "USMV", "VLUE", "SPY"]
 
@@ -44,12 +44,7 @@ def get_etf_prices(
 
     stock_prices_clean = pl.from_pandas(stock_prices_raw.df.reset_index()).select(
         pl.col("symbol").alias("ticker"),
-        pl.col("timestamp")
-        .dt.replace_time_zone("UTC")
-        .dt.convert_time_zone("America/Denver")
-        .dt.date()
-        .cast(pl.String)
-        .alias("date"),
+        pl.col("timestamp").dt.date().cast(pl.String).alias("date"),
         "open",
         "high",
         "low",
@@ -67,16 +62,16 @@ def get_etf_prices_batches(
     tickers: list[str], start: dt.datetime, end: dt.datetime
 ) -> pl.DataFrame:
     years = range(start.year, end.year + 1)
-    stock_prices_list = []
+    etf_prices_list = []
     for year in years:
-        year_start = max(dt.datetime(year, 1, 1, tzinfo=start.tzinfo), start)
-        year_end = min(dt.datetime(year, 12, 31, tzinfo=end.tzinfo), end)
+        year_start = max(dt.datetime(year, 1, 1, 0, 0, 0, tzinfo=TIME_ZONE), start)
+        year_end = min(dt.datetime(year, 12, 31, 23, 59, 59, tzinfo=TIME_ZONE), end)
 
-        stock_prices = get_etf_prices(tickers, year_start, year_end)
+        etf_prices = get_etf_prices(tickers, year_start, year_end)
 
-        stock_prices_list.append(stock_prices)
+        etf_prices_list.append(etf_prices)
 
-    return pl.concat(stock_prices_list).sort("date", "ticker")
+    return pl.concat(etf_prices_list).sort("date", "ticker")
 
 
 @task
@@ -112,10 +107,8 @@ def upload_and_merge_etf_prices_df(stock_prices_df: pl.DataFrame):
 
 @flow
 def etf_prices_backfill_flow():
-    start = dt.datetime(2017, 1, 1, tzinfo=ZoneInfo("America/Denver"))
-    end = dt.datetime.today().replace(tzinfo=ZoneInfo("America/Denver")) - dt.timedelta(
-        days=1
-    )
+    start = dt.datetime(2017, 1, 1, tzinfo=TIME_ZONE)
+    end = dt.datetime.today().replace(tzinfo=TIME_ZONE) - dt.timedelta(days=1)
 
     etf_prices_df = get_etf_prices_batches(TICKERS, start, end)
     upload_and_merge_etf_prices_df(etf_prices_df)
@@ -131,12 +124,7 @@ def get_last_market_date() -> dt.date:
 @flow
 def etf_prices_daily_flow():
     last_market_date = get_last_market_date()
-    yesterday = (
-        dt.datetime.now(ZoneInfo("America/Denver")) - dt.timedelta(days=1)
-    ).date()
-
-    print("Last Market Date:", last_market_date)
-    print("Yesterday:", yesterday)
+    yesterday = (dt.datetime.now(TIME_ZONE) - dt.timedelta(days=1)).date()
 
     # Only get new data if yesterday was the last market date
     if last_market_date != yesterday:
@@ -145,12 +133,8 @@ def etf_prices_daily_flow():
         print("Yesterday:", yesterday)
         return
 
-    start = dt.datetime.combine(yesterday, dt.time(0, 0, 0)).replace(
-        tzinfo=ZoneInfo("America/Denver")
-    )
-    end = dt.datetime.combine(yesterday, dt.time(23, 59, 59)).replace(
-        tzinfo=ZoneInfo("America/Denver")
-    )
+    start = dt.datetime.combine(yesterday, dt.time(0, 0, 0)).replace(tzinfo=TIME_ZONE)
+    end = dt.datetime.combine(yesterday, dt.time(23, 59, 59)).replace(tzinfo=TIME_ZONE)
 
     stock_prices_df = get_etf_prices_batches(TICKERS, start, end)
 
