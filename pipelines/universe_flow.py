@@ -52,19 +52,11 @@ def clean_current_constituents_df(
 ) -> pl.DataFrame:
     return (
         pl.from_pandas(current_constituents_df)
-        .rename(
-            {
-                col: col.replace(" ", "_").replace("-", "").lower()
-                for col in current_constituents_df.columns
-            }
+        .select(
+            pl.col('Symbol').alias('ticker')
         )
-        .rename({"symbol": "ticker"})
-        .with_columns(
-            pl.col("date_added").str.strptime(pl.Date, "%Y-%m-%d"),
-            pl.col("cik").cast(pl.String),
-        )
-        .drop("founded")
         .drop_nulls("ticker")
+        .sort('ticker')
     )
 
 
@@ -200,3 +192,6 @@ def universe_backfill_flow():
     )
 
     upload_universe_df(universe_df)
+
+if __name__ == '__main__':
+    universe_backfill_flow()
