@@ -128,10 +128,7 @@ def benchmark_daily_flow():
         print("Yesterday:", yesterday)
         return
 
-    start = dt.datetime.combine(yesterday, dt.time(0, 0, 0)).replace(tzinfo=TIME_ZONE)
-    end = dt.datetime.combine(yesterday, dt.time(23, 59, 59)).replace(tzinfo=TIME_ZONE)
-
-    universe_returns = get_universe_returns(start, end)
+    universe_returns = get_universe_returns(yesterday, yesterday)
 
     benchmark_weights = get_benchmark_weights(universe_returns)
     benchmark_returns = get_benchmark_returns(universe_returns, benchmark_weights)
