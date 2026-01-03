@@ -190,7 +190,3 @@ def universe_backfill_flow():
     )
 
     upload_universe_df(universe_df)
-
-
-if __name__ == "__main__":
-    universe_backfill_flow()

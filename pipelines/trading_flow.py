@@ -57,7 +57,3 @@ def trading_daily_flow():
     # TODO: Filter out notional deltas < $1
 
     place_all_orders(notionals)
-
-
-if __name__ == "__main__":
-    trading_daily_flow()
