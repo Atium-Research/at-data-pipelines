@@ -12,7 +12,6 @@ from reversal_flow import reversal_backfill_flow, reversal_daily_flow
 from benchmark_flow import benchmark_backfill_flow, benchmark_daily_flow
 from betas_flow import betas_backfill_flow, betas_daily_flow
 from portfolio_weights_flow import (
-    portfolio_weights_backfill_flow,
     portfolio_weights_daily_flow,
 )
 from prefect import flow, serve
@@ -46,7 +45,6 @@ def backfill_flow():
     reversal_backfill_flow()  # Depends on stock_returns and factor_model
     benchmark_backfill_flow()  # Depends on stock_returns
     betas_backfill_flow()  # Depends on stock_returns and benchmark_returns
-    portfolio_weights_backfill_flow()  # Depends on everything
 
 
 if __name__ == "__main__":
@@ -67,7 +65,4 @@ if __name__ == "__main__":
         reversal_backfill_flow.to_deployment(name="reversal-backfill-flow"),
         benchmark_backfill_flow.to_deployment(name="benchmark-backfill-flow"),
         betas_backfill_flow.to_deployment(name="betas-backfill-flow"),
-        portfolio_weights_backfill_flow.to_deployment(
-            name="portfolio-weights-backfill-flow"
-        ),
     )
