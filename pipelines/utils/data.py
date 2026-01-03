@@ -102,3 +102,42 @@ def get_idio_vol(start: dt.date, end: dt.date) -> pl.DataFrame:
     return pl.from_arrow(data_arrow).with_columns(
         pl.col("date").str.strptime(pl.Date, "%Y-%m-%d")
     )
+
+
+def get_portfolio_weights(start: dt.date, end: dt.date) -> pl.DataFrame:
+    clickhouse_client = get_clickhouse_client()
+
+    data_arrow = clickhouse_client.query_arrow(
+        f"""
+        SELECT 
+            date,
+            ticker,
+            weight
+        FROM portfolio_weights
+        WHERE date BETWEEN '{start}' AND '{end}'
+        """
+    )
+
+    return pl.from_arrow(data_arrow).with_columns(
+        pl.col("date").str.strptime(pl.Date, "%Y-%m-%d")
+    )
+
+
+def get_prices(start: dt.date, end: dt.date) -> pl.DataFrame:
+    clickhouse_client = get_clickhouse_client()
+
+    data_arrow = clickhouse_client.query_arrow(
+        f"""
+        SELECT
+            u.date,
+            u.ticker,
+            p.close
+        FROM universe u
+        INNER JOIN stock_prices p ON u.date = p.date AND u.ticker = p.ticker
+        WHERE u.date BETWEEN '{start}' AND '{end}'
+        """
+    )
+
+    return pl.from_arrow(data_arrow).with_columns(
+        pl.col("date").str.strptime(pl.Date, "%Y-%m-%d")
+    )

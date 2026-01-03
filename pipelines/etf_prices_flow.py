@@ -1,4 +1,4 @@
-from clients import get_alpaca_client, get_clickhouse_client
+from clients import get_alpaca_historical_stock_data_client, get_clickhouse_client
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.enums import Adjustment, DataFeed
 from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
@@ -14,7 +14,7 @@ TICKERS = ["MTUM", "QUAL", "USMV", "VLUE", "SPY"]
 def get_etf_prices(
     tickers: list[str], start: dt.datetime, end: dt.datetime
 ) -> pl.DataFrame:
-    alpaca_client = get_alpaca_client()
+    alpaca_client = get_alpaca_historical_stock_data_client()
 
     stock_bars_request = StockBarsRequest(
         symbol_or_symbols=tickers,
