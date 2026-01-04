@@ -6,7 +6,6 @@ import datetime as dt
 import polars as pl
 from prefect import flow, task
 from variables import TIME_ZONE
-import yfinance as yf
 
 
 @task
