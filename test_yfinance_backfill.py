@@ -1,21 +1,20 @@
 """
 Test script for yfinance backfill flow.
-This script tests the yfinance backfill with a small subset of tickers and a short date range.
 """
 
 import sys
 from pathlib import Path
 
-# Add pipelines directory to path so imports work
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root / "pipelines"))
 
 import datetime as dt
-from stock_prices_flow import (
+import polars as pl
+from pipelines.stock_prices_yfinance_flow import (
     get_stock_prices_yfinance,
     get_stock_prices_yfinance_batches,
 )
-from variables import TIME_ZONE
+from pipelines.variables import TIME_ZONE
 
 
 def test_yfinance_single_ticker():
@@ -96,20 +95,38 @@ def test_without_upload():
         "low",
         "close",
         "volume",
-        "trade_count",
-        "vwap",
     ]
     assert (
         list(result.columns) == expected_columns
     ), f"Columns don't match! Got: {result.columns}"
-
-    assert result["vwap"].null_count() == len(result), "vwap should be all null"
-    assert result["trade_count"].null_count() == len(
-        result
-    ), "trade_count should be all null"
-
     print("\n✓ Schema validation passed!")
-    print("✓ vwap and trade_count are null as expected!")
+
+    return result
+
+
+def test_2000_to_present():
+    print("\nTesting 2000-to-present range with 3 tickers...")
+    print("(This will take a few minutes...)")
+
+    start = dt.datetime(2000, 1, 1, tzinfo=TIME_ZONE)
+    end = dt.datetime.now(TIME_ZONE)
+
+    tickers = ["AAPL", "MSFT", "AMZN"]
+    result = get_stock_prices_yfinance_batches(tickers, start, end)
+
+    print(f"\nTotal rows: {len(result):,}")
+
+    if len(result) > 0:
+        print(f"Date range: {result['date'].min()} to {result['date'].max()}")
+        print(f"Unique tickers: {result['ticker'].n_unique()}")
+        print("\nSample data (first 5 rows):")
+        print(result.head())
+        print("\nSample data (last 5 rows):")
+        print(result.tail())
+
+        ticker_counts = result.group_by("ticker").agg(pl.count()).sort("ticker")
+        print("\nRows per ticker:")
+        print(ticker_counts)
 
     return result
 
@@ -123,14 +140,8 @@ if __name__ == "__main__":
     test_yfinance_multiple_tickers()
     test_yfinance_old_data()
     test_without_upload()
+    test_2000_to_present()
 
     print("\n" + "=" * 60)
     print("All tests completed!")
     print("=" * 60)
-    print("\nTo test with actual upload to ClickHouse, run:")
-    print("  python -m pipelines.stock_prices_flow")
-    print("\nOr run the Prefect flow directly:")
-    print(
-        "  from pipelines.stock_prices_flow import stock_prices_yfinance_backfill_flow"
-    )
-    print("  stock_prices_yfinance_backfill_flow()")
