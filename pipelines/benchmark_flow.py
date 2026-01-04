@@ -3,6 +3,7 @@ import polars as pl
 import datetime as dt
 from clients import get_clickhouse_client
 from variables import TIME_ZONE
+from utils import get_last_market_date
 
 
 @task
@@ -107,13 +108,6 @@ def benchmark_backfill_flow():
 
     upload_and_merge_benchmark_weights(benchmark_weights)
     upload_and_merge_benchmark_returns(benchmark_returns)
-
-
-@task
-def get_last_market_date() -> dt.date:
-    clickhouse_client = get_clickhouse_client()
-    last_market_date = clickhouse_client.query("SELECT MAX(date) FROM calendar")
-    return dt.datetime.strptime(last_market_date.result_rows[0][0], "%Y-%m-%d").date()
 
 
 @flow

@@ -6,6 +6,7 @@ import datetime as dt
 import polars as pl
 from prefect import flow, task
 from variables import TIME_ZONE
+from utils import get_last_market_date
 
 TICKERS = ["MTUM", "QUAL", "USMV", "VLUE", "SPY"]
 
@@ -112,13 +113,6 @@ def etf_prices_backfill_flow():
 
     etf_prices_df = get_etf_prices_batches(TICKERS, start, end)
     upload_and_merge_etf_prices_df(etf_prices_df)
-
-
-@task
-def get_last_market_date() -> dt.date:
-    clickhouse_client = get_clickhouse_client()
-    last_market_date = clickhouse_client.query("SELECT MAX(date) FROM calendar")
-    return dt.datetime.strptime(last_market_date.result_rows[0][0], "%Y-%m-%d").date()
 
 
 @flow

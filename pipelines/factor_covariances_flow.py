@@ -3,6 +3,7 @@ import datetime as dt
 from clients import get_clickhouse_client
 from prefect import task, flow
 from variables import WINDOW, FACTORS
+from utils import get_trading_date_range
 
 
 @task
@@ -98,17 +99,6 @@ def factor_covariances_backfill_flow():
     upload_and_merge_factor_covariances(factor_covariances_clean)
 
 
-@task
-def get_trading_date_range(window: int) -> dt.date:
-    clickhouse_client = get_clickhouse_client()
-    date_range_arrow = clickhouse_client.query_arrow(
-        f"SELECT date FROM calendar ORDER BY date DESC LIMIT {window}"
-    )
-    return pl.from_arrow(date_range_arrow).with_columns(
-        pl.col("date").str.strptime(pl.Date, "%Y-%m-%d")
-    )
-
-
 @flow
 def factor_covariances_daily_flow():
     date_range = get_trading_date_range(window=WINDOW)
@@ -120,6 +110,9 @@ def factor_covariances_daily_flow():
 
     # Only get new data if yesterday was the last market date
     if end != yesterday:
+        print("Market was not open yesterday!")
+        print("Last Market Date:", end)
+        print("Yesterday:", yesterday)
         return
 
     etf_returns = get_etf_returns(start, end)

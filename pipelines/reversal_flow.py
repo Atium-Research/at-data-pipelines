@@ -3,6 +3,7 @@ import polars as pl
 import datetime as dt
 from clients import get_clickhouse_client
 from variables import IC
+from utils import get_trading_date_range
 
 
 @task
@@ -171,17 +172,6 @@ def reversal_backfill_flow():
     upload_and_merge_signals(signals)
     upload_and_merge_scores(scores)
     upload_and_merge_alphas(alphas)
-
-
-@task
-def get_trading_date_range(window: int) -> dt.date:
-    clickhouse_client = get_clickhouse_client()
-    date_range_arrow = clickhouse_client.query_arrow(
-        f"SELECT date FROM calendar ORDER BY date DESC LIMIT {window}"
-    )
-    return pl.from_arrow(date_range_arrow).with_columns(
-        pl.col("date").str.strptime(pl.Date, "%Y-%m-%d")
-    )
 
 
 @flow

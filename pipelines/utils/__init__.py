@@ -9,6 +9,7 @@ from .data import (
     get_portfolio_weights,
     get_prices,
 )
+from .calendar import get_last_market_date, get_trading_date_range
 
 __all__ = [
     "get_covariance_matrix",
@@ -20,4 +21,6 @@ __all__ = [
     "get_idio_vol",
     "get_portfolio_weights",
     "get_prices",
+    "get_last_market_date",
+    "get_trading_date_range",
 ]

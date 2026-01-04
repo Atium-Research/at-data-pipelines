@@ -1,10 +1,11 @@
 from utils import get_portfolio_weights
 import datetime as dt
 import polars as pl
-from clients import get_alpaca_trading_client
+from clients import get_alpaca_trading_client, get_clickhouse_client
 from alpaca.trading import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
 from prefect import task, flow
+from utils import get_last_market_date
 
 
 @task
@@ -47,10 +48,10 @@ def place_all_orders(notional_deltas: pl.DataFrame):
 
 @flow
 def trading_daily_flow():
-    yesterday = dt.date.today() - dt.timedelta(days=1)
+    last_market_date = get_last_market_date()
 
     account_value = get_account_value()
-    weights = get_portfolio_weights(yesterday, yesterday)
+    weights = get_portfolio_weights(last_market_date, last_market_date)
     notionals = get_notionals(weights, account_value)
 
     # TODO: Compute notional deltas

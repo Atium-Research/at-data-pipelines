@@ -6,6 +6,7 @@ import datetime as dt
 import polars as pl
 from prefect import flow, task
 from variables import TIME_ZONE
+from utils import get_last_market_date
 
 
 @task
@@ -122,13 +123,6 @@ def stock_prices_backfill_flow():
     tickers = get_tickers()
     stock_prices_df = get_stock_prices_batches(tickers, start, end)
     upload_and_merge_stock_prices_df(stock_prices_df)
-
-
-@task
-def get_last_market_date() -> dt.date:
-    clickhouse_client = get_clickhouse_client()
-    last_market_date = clickhouse_client.query("SELECT MAX(date) FROM calendar")
-    return dt.datetime.strptime(last_market_date.result_rows[0][0], "%Y-%m-%d").date()
 
 
 @flow

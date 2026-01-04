@@ -6,6 +6,7 @@ import statsmodels.api as sm
 from tqdm import tqdm
 from prefect import task, flow
 from variables import WINDOW, DISABLE_TQDM
+from utils import get_trading_date_range
 
 
 @task
@@ -145,17 +146,6 @@ def betas_backfill_flow():
     upload_and_merge_betas(betas)
 
 
-@task
-def get_trading_date_range(window: int) -> dt.date:
-    clickhouse_client = get_clickhouse_client()
-    date_range_arrow = clickhouse_client.query_arrow(
-        f"SELECT date FROM calendar ORDER BY date DESC LIMIT {window}"
-    )
-    return pl.from_arrow(date_range_arrow).with_columns(
-        pl.col("date").str.strptime(pl.Date, "%Y-%m-%d")
-    )
-
-
 @flow
 def betas_daily_flow():
     date_range = get_trading_date_range(window=WINDOW * 2)
@@ -167,6 +157,9 @@ def betas_daily_flow():
 
     # Only get new data if yesterday was the last market date
     if end != yesterday:
+        print("Market was not open yesterday!")
+        print("Last Market Date:", end)
+        print("Yesterday:", yesterday)
         return
 
     stock_returns = get_stock_returns(start, end)

@@ -14,6 +14,7 @@ from betas_flow import betas_backfill_flow, betas_daily_flow
 from portfolio_weights_flow import (
     portfolio_weights_daily_flow,
 )
+from trading_flow import trading_daily_flow
 from prefect import flow, serve
 from prefect.schedules import Cron
 
@@ -31,6 +32,7 @@ def daily_flow():
     benchmark_daily_flow()  # Depends on stock_returns
     betas_daily_flow()  # Depends on stock_returns and benchmark_returns
     portfolio_weights_daily_flow()  # Depends on everything
+    trading_daily_flow()  # Depends on portfolio_weights
 
 
 @flow

@@ -14,6 +14,7 @@ from utils import (
 from variables import TARGET_ACTIVE_RISK
 from clients import get_clickhouse_client
 from prefect import task, flow
+from utils import get_last_market_date
 
 # Suppress Ray GPU warning for CPU-only usage
 os.environ["RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO"] = "0"
@@ -203,7 +204,15 @@ def portfolio_weights_backfill_flow():
 
 @flow
 def portfolio_weights_daily_flow():
+    last_market_date = get_last_market_date()
     yesterday = dt.date.today() - dt.timedelta(days=1)
+
+    # Only get new data if yesterday was the last market date
+    if last_market_date != yesterday:
+        print("Market was not open yesterday!")
+        print("Last Market Date:", last_market_date)
+        print("Yesterday:", yesterday)
+        return
 
     alphas = get_alphas(yesterday, yesterday)
     benchmark_weights = get_benchmark_weights(yesterday, yesterday)
