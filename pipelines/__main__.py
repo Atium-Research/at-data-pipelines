@@ -1,6 +1,10 @@
 from calendar_flow import calendar_backfill_flow
 from universe_flow import universe_backfill_flow
 from stock_prices_flow import stock_prices_backfill_flow, stock_prices_daily_flow
+from stock_prices_yfinance_flow import (
+    stock_prices_yfinance_backfill_flow,
+    stock_prices_yfinance_daily_flow,
+)
 from etf_prices_flow import etf_prices_backfill_flow, etf_prices_daily_flow
 from returns_flow import returns_backfill_flow
 from factor_model_flow import factor_model_backfill_flow, factor_model_daily_flow
@@ -23,6 +27,7 @@ def daily_flow():
     calendar_backfill_flow()
     universe_backfill_flow()  # Depends on calendar
     stock_prices_daily_flow()  # Depends on universe
+    stock_prices_yfinance_daily_flow()  # Depends on universe
     etf_prices_daily_flow()  # Depends on calendar
     returns_backfill_flow()  # Depends on stock_prices and etf_prices
     factor_model_daily_flow()  # Depends on stock_returns and etf_returns
@@ -38,6 +43,7 @@ def backfill_flow():
     calendar_backfill_flow()
     universe_backfill_flow()  # Depends on calendar
     stock_prices_backfill_flow()  # Depends on universe
+    stock_prices_yfinance_backfill_flow()  # Depends on universe
     etf_prices_backfill_flow()  # Depends on calendar
     returns_backfill_flow()  # Depends on stock_prices and etf_prices
     factor_model_backfill_flow()  # Depends on stock_returns and etf_returns
@@ -56,6 +62,9 @@ if __name__ == "__main__":
         calendar_backfill_flow.to_deployment(name="calendar-backfill-flow"),
         universe_backfill_flow.to_deployment(name="universe-backfill-flow"),
         stock_prices_backfill_flow.to_deployment(name="stock-prices-backfill-flow"),
+        stock_prices_yfinance_backfill_flow.to_deployment(
+            name="stock-prices-yfinance-backfill-flow"
+        ),
         etf_prices_backfill_flow.to_deployment(name="etf-prices-backfill-flow"),
         returns_backfill_flow.to_deployment(name="returns-backfill-flow"),
         factor_model_backfill_flow.to_deployment(name="factor-model-backfill-flow"),
