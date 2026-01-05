@@ -19,7 +19,7 @@ def get_account_value():
 def get_notionals(weights: pl.DataFrame, account_value: float) -> pl.DataFrame:
     return (
         weights.select(
-            "ticker", pl.col("weight").mul(pl.lit(account_value)).alias("notional")
+            "ticker", pl.col("weight").mul(pl.lit(account_value)).round(2).alias("notional")
         )
         .filter(pl.col("notional").ge(1))
         .sort("notional", descending=True)
@@ -33,6 +33,7 @@ def place_order(ticker: str, notional_delta: float):
     side = OrderSide.SELL if notional_delta < 0 else OrderSide.BUY
     notional = abs(notional_delta)
 
+    print(f"Executing {side} @ {notional} for {ticker}")
     order_data = MarketOrderRequest(
         symbol=ticker, notional=notional, side=side, time_in_force=TimeInForce.DAY
     )
@@ -53,7 +54,7 @@ def trading_daily_flow():
     account_value = get_account_value()
     weights = get_portfolio_weights(last_market_date, last_market_date)
     notionals = get_notionals(weights, account_value)
-
+    print(notionals)
     # TODO: Compute notional deltas
     # TODO: Filter out notional deltas < $1
 
