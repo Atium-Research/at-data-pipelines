@@ -6,6 +6,7 @@ from prefect import flow, task, get_run_logger
 from pipelines.stock_prices_flow import get_tickers
 from variables import TIME_ZONE
 import yfinance as yf
+from utils import get_last_market_date
 
 
 @task
@@ -138,13 +139,6 @@ def upload_and_merge_stock_prices_yfinance_df(stock_prices_df: pl.DataFrame):
 
     # Optimize table (deduplicate)
     clickhouse_client.command(f"OPTIMIZE TABLE {table_name} FINAL")
-
-
-@task
-def get_last_market_date() -> dt.date:
-    clickhouse_client = get_clickhouse_client()
-    last_market_date = clickhouse_client.query("SELECT MAX(date) FROM calendar")
-    return dt.datetime.strptime(last_market_date.result_rows[0][0], "%Y-%m-%d").date()
 
 
 @flow
