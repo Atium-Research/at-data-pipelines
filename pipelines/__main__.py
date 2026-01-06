@@ -1,10 +1,10 @@
 from calendar_flow import calendar_backfill_flow
 from universe_flow import universe_backfill_flow
 from stock_prices_flow import stock_prices_backfill_flow, stock_prices_daily_flow
-from stock_prices_yfinance_flow import (
-    stock_prices_yfinance_backfill_flow,
-    stock_prices_yfinance_daily_flow,
-)
+# from stock_prices_yfinance_flow import (
+#     stock_prices_yfinance_backfill_flow,
+#     stock_prices_yfinance_daily_flow,
+# )
 from etf_prices_flow import etf_prices_backfill_flow, etf_prices_daily_flow
 from returns_flow import returns_backfill_flow
 from factor_model_flow import factor_model_backfill_flow, factor_model_daily_flow
@@ -55,28 +55,29 @@ def backfill_flow():
 
 
 if __name__ == "__main__":
-    serve(
-        daily_flow.to_deployment(
-            name="daily-flow", schedule=Cron("0 2 * * *", timezone="America/Denver")
-        ),
-        trading_daily_flow.to_deployment(
-            name="trading-daily-flow",
-            schedule=Cron("30 7 * * *", timezone="America/Denver"),
-        ),
-        backfill_flow.to_deployment(name="backfill-flow"),
-        calendar_backfill_flow.to_deployment(name="calendar-backfill-flow"),
-        universe_backfill_flow.to_deployment(name="universe-backfill-flow"),
-        stock_prices_backfill_flow.to_deployment(name="stock-prices-backfill-flow"),
-        # stock_prices_yfinance_backfill_flow.to_deployment(
-        #     name="stock-prices-yfinance-backfill-flow"
-        # ),
-        etf_prices_backfill_flow.to_deployment(name="etf-prices-backfill-flow"),
-        returns_backfill_flow.to_deployment(name="returns-backfill-flow"),
-        factor_model_backfill_flow.to_deployment(name="factor-model-backfill-flow"),
-        factor_covariances_backfill_flow.to_deployment(
-            name="factor-covariances-backfill-flow"
-        ),
-        reversal_backfill_flow.to_deployment(name="reversal-backfill-flow"),
-        benchmark_backfill_flow.to_deployment(name="benchmark-backfill-flow"),
-        betas_backfill_flow.to_deployment(name="betas-backfill-flow"),
-    )
+    backfill_flow()
+    # serve(
+    #     daily_flow.to_deployment(
+    #         name="daily-flow", schedule=Cron("0 2 * * *", timezone="America/Denver")
+    #     ),
+    #     trading_daily_flow.to_deployment(
+    #         name="trading-daily-flow",
+    #         schedule=Cron("30 7 * * *", timezone="America/Denver"),
+    #     ),
+    #     backfill_flow.to_deployment(name="backfill-flow"),
+    #     calendar_backfill_flow.to_deployment(name="calendar-backfill-flow"),
+    #     universe_backfill_flow.to_deployment(name="universe-backfill-flow"),
+    #     stock_prices_backfill_flow.to_deployment(name="stock-prices-backfill-flow"),
+    #     # stock_prices_yfinance_backfill_flow.to_deployment(
+    #     #     name="stock-prices-yfinance-backfill-flow"
+    #     # ),
+    #     etf_prices_backfill_flow.to_deployment(name="etf-prices-backfill-flow"),
+    #     returns_backfill_flow.to_deployment(name="returns-backfill-flow"),
+    #     factor_model_backfill_flow.to_deployment(name="factor-model-backfill-flow"),
+    #     factor_covariances_backfill_flow.to_deployment(
+    #         name="factor-covariances-backfill-flow"
+    #     ),
+    #     reversal_backfill_flow.to_deployment(name="reversal-backfill-flow"),
+    #     benchmark_backfill_flow.to_deployment(name="benchmark-backfill-flow"),
+    #     betas_backfill_flow.to_deployment(name="betas-backfill-flow"),
+    # )
