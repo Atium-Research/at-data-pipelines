@@ -40,7 +40,7 @@ def clean_factor_covariances(factor_covariances: pl.DataFrame) -> pl.DataFrame:
         .sort("factor_1", "factor_2", "date")
         .with_columns(
             pl.col("covariance").ewm_mean(half_life=60).over("factor_1", "factor_2"),
-            pl.col("date").dt.year().alias('year'),
+            pl.col("date").dt.year().alias("year"),
         )
     )
 
@@ -54,23 +54,19 @@ def upload_and_merge_factor_covariances(factor_covariances: pl.DataFrame):
     bear_lake_client.create(
         name=table_name,
         schema={
-            'date': pl.Date,
-            'year': pl.Int32,
-            'factor_1': pl.String,
-            'factor_2': pl.String,
-            'covariance': pl.Float64
+            "date": pl.Date,
+            "year": pl.Int32,
+            "factor_1": pl.String,
+            "factor_2": pl.String,
+            "covariance": pl.Float64,
         },
-        partition_keys=['year'],
-        primary_keys=['date', 'factor_1', 'factor_2'],
-        mode='skip'
+        partition_keys=["year"],
+        primary_keys=["date", "factor_1", "factor_2"],
+        mode="skip",
     )
 
     # Insert data
-    bear_lake_client.insert(
-        name=table_name,
-        data=factor_covariances,
-        mode='append'
-    )
+    bear_lake_client.insert(name=table_name, data=factor_covariances, mode="append")
 
     # Optimize
     bear_lake_client.optimize(name=table_name)
@@ -111,6 +107,3 @@ def factor_covariances_daily_flow():
     factor_covariances_clean = clean_factor_covariances(factor_covariances)
 
     upload_and_merge_factor_covariances(factor_covariances_clean)
-
-if __name__ == '__main__':
-    factor_covariances_backfill_flow()

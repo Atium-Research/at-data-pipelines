@@ -8,6 +8,7 @@ from prefect import task, flow
 from variables import WINDOW, FACTORS, DISABLE_TQDM
 from utils import get_trading_date_range, get_stock_returns, get_etf_returns
 
+
 @task
 def estimate_regression(
     stock_returns: pl.DataFrame, etf_returns: pl.DataFrame
@@ -83,26 +84,22 @@ def clean_factor_loadings(factor_loadings: pl.DataFrame) -> pl.DataFrame:
         )
         .with_columns(
             pl.col("loading").ewm_mean(half_life=60).over("ticker", "factor"),
-            pl.col('date').dt.year().alias('year'),
+            pl.col("date").dt.year().alias("year"),
         )
     )
 
 
 @task
 def clean_idio_vol(residuals: pl.DataFrame) -> pl.DataFrame:
-    return (
-        residuals
-        .sort("ticker", "date")
-        .select(
-            "ticker",
-            "date",
-            pl.col('date').dt.year().alias('year'),
-            pl.col("residual")
-            .rolling_std(window_size=WINDOW)
-            .ewm_mean(half_life=60)
-            .over("ticker")
-            .alias("idio_vol"),
-        )
+    return residuals.sort("ticker", "date").select(
+        "ticker",
+        "date",
+        pl.col("date").dt.year().alias("year"),
+        pl.col("residual")
+        .rolling_std(window_size=WINDOW)
+        .ewm_mean(half_life=60)
+        .over("ticker")
+        .alias("idio_vol"),
     )
 
 
@@ -115,23 +112,19 @@ def upload_and_merge_factor_loadings(factor_loadings: pl.DataFrame) -> pl.DataFr
     bear_lake_client.create(
         name=table_name,
         schema={
-            'ticker': pl.String,
-            'date': pl.Date,
-            'year': pl.Int32,
-            'factor': pl.String,
-            'loading': pl.Float64
+            "ticker": pl.String,
+            "date": pl.Date,
+            "year": pl.Int32,
+            "factor": pl.String,
+            "loading": pl.Float64,
         },
-        partition_keys=['year'],
-        primary_keys=['date', 'ticker', 'factor'],
-        mode='skip'
+        partition_keys=["year"],
+        primary_keys=["date", "ticker", "factor"],
+        mode="skip",
     )
 
     # Insert data
-    bear_lake_client.insert(
-        name=table_name,
-        data=factor_loadings,
-        mode='append'
-    )
+    bear_lake_client.insert(name=table_name, data=factor_loadings, mode="append")
 
     # Optimize
     bear_lake_client.optimize(name=table_name)
@@ -146,22 +139,18 @@ def upload_and_merge_idio_vol(idio_vol: pl.DataFrame) -> pl.DataFrame:
     bear_lake_client.create(
         name=table_name,
         schema={
-            'ticker': pl.String,
-            'date': pl.Date,
-            'year': pl.Int32,
-            'idio_vol': pl.Float64
+            "ticker": pl.String,
+            "date": pl.Date,
+            "year": pl.Int32,
+            "idio_vol": pl.Float64,
         },
-        partition_keys=['year'],
-        primary_keys=['date', 'ticker'],
-        mode='skip'
+        partition_keys=["year"],
+        primary_keys=["date", "ticker"],
+        mode="skip",
     )
 
     # Insert data
-    bear_lake_client.insert(
-        name=table_name,
-        data=idio_vol,
-        mode='append'
-    )
+    bear_lake_client.insert(name=table_name, data=idio_vol, mode="append")
 
     # Optimize
     bear_lake_client.optimize(name=table_name)
@@ -191,32 +180,22 @@ def factor_model_daily_flow():
     start = date_range["date"].min()
     end = date_range["date"].max()
 
-    # yesterday = dt.date.today() - dt.timedelta(days=1)
+    yesterday = dt.date.today() - dt.timedelta(days=1)
 
-    # # Only get new data if yesterday was the last market date
-    # if end != yesterday:
-    #     print("Market was not open yesterday!")
-    #     print("Last Market Date:", end)
-    #     print("Yesterday:", yesterday)
-    #     return
+    # Only get new data if yesterday was the last market date
+    if end != yesterday:
+        print("Market was not open yesterday!")
+        print("Last Market Date:", end)
+        print("Yesterday:", yesterday)
+        return
 
     stock_returns = get_stock_returns(start, end)
     etf_returns = get_etf_returns(start, end)
 
     betas, residuals = estimate_regression(stock_returns, etf_returns)
-    
-    print(betas.filter(pl.col('ticker').eq("GEV")).drop_nulls().sort('date'))
-    print(residuals.filter(pl.col('ticker').eq("GEV")).drop_nulls().sort('date'))
 
     factor_loadings = clean_factor_loadings(betas).filter(pl.col("date").eq(end))
     idio_vol = clean_idio_vol(residuals).filter(pl.col("date").eq(end))
 
-    print(factor_loadings.filter(pl.col('ticker').eq("GEV")).sort('date'))
-    print(idio_vol.filter(pl.col('ticker').eq("GEV")).sort('date'))
-
     upload_and_merge_factor_loadings(factor_loadings)
     upload_and_merge_idio_vol(idio_vol)
-
-if __name__ == '__main__':
-    # factor_model_backfill_flow()
-    factor_model_daily_flow()

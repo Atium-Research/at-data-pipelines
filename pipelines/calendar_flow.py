@@ -18,7 +18,7 @@ def get_market_calendar(start: dt.date, end: dt.date) -> pl.DataFrame:
     calendar_df = (
         pl.from_pandas(schedule.reset_index())
         .select(
-            pl.col("index").cast(pl.Date).alias('date'),
+            pl.col("index").cast(pl.Date).alias("date"),
         )
         .drop_nulls()
         .sort("date")
@@ -37,20 +37,14 @@ def upload_calendar_df(calendar_df: pl.DataFrame):
     # Create
     bear_lake_client.create(
         name=table_name,
-        schema={
-            'date': pl.Date
-        },
+        schema={"date": pl.Date},
         partition_keys=None,
-        primary_keys=['date'],
-        mode="replace"
+        primary_keys=["date"],
+        mode="replace",
     )
 
     # Insert
-    bear_lake_client.insert(
-        name=table_name,
-        data=calendar_df,
-        mode="append"
-    )
+    bear_lake_client.insert(name=table_name, data=calendar_df, mode="append")
 
 
 @flow
@@ -59,6 +53,3 @@ def calendar_backfill_flow():
     end = dt.date.today() - dt.timedelta(days=1)  # yesterday
     calendar_df = get_market_calendar(start, end)
     upload_calendar_df(calendar_df)
-
-if __name__ == '__main__':
-    calendar_backfill_flow()

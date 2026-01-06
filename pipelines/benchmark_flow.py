@@ -9,7 +9,10 @@ from utils import get_last_market_date, get_universe_returns
 @task
 def calculate_benchmark_weights(universe_returns: pl.DataFrame) -> pl.DataFrame:
     return universe_returns.select(
-        "ticker", "date", pl.col('date').dt.year().alias('year'), pl.lit(1).truediv(pl.len()).over("date").alias("weight")
+        "ticker",
+        "date",
+        pl.col("date").dt.year().alias("year"),
+        pl.lit(1).truediv(pl.len()).over("date").alias("weight"),
     ).sort("ticker", "date")
 
 
@@ -36,18 +39,18 @@ def upload_and_merge_benchmark_weights(benchmark_weights: pl.DataFrame) -> pl.Da
     bear_lake_client.create(
         name=table_name,
         schema={
-            'ticker': pl.String,
-            'date': pl.Date,
-            'year': pl.Int32,
-            'weight': pl.Float64
+            "ticker": pl.String,
+            "date": pl.Date,
+            "year": pl.Int32,
+            "weight": pl.Float64,
         },
-        partition_keys=['year'],
-        primary_keys=['date', 'ticker'],
-        mode='skip'
+        partition_keys=["year"],
+        primary_keys=["date", "ticker"],
+        mode="skip",
     )
 
     # Insert
-    bear_lake_client.insert(name=table_name, data=benchmark_weights, mode='append')
+    bear_lake_client.insert(name=table_name, data=benchmark_weights, mode="append")
 
     # Optimize table (deduplicate)
     bear_lake_client.optimize(name=table_name)
@@ -61,17 +64,14 @@ def upload_and_merge_benchmark_returns(benchmark_returns: pl.DataFrame) -> pl.Da
     # Create table if not exists
     bear_lake_client.create(
         name=table_name,
-        schema={
-            'date': pl.Date,
-            'return': pl.Float64
-        },
+        schema={"date": pl.Date, "return": pl.Float64},
         partition_keys=None,
-        primary_keys=['date'],
-        mode='skip'
+        primary_keys=["date"],
+        mode="skip",
     )
 
     # Insert
-    bear_lake_client.insert(name=table_name, data=benchmark_returns, mode='append')
+    bear_lake_client.insert(name=table_name, data=benchmark_returns, mode="append")
 
     # Optimize table (deduplicate)
     bear_lake_client.optimize(name=table_name)
@@ -110,6 +110,3 @@ def benchmark_daily_flow():
 
     upload_and_merge_benchmark_weights(benchmark_weights)
     upload_and_merge_benchmark_returns(benchmark_returns)
-
-if __name__ == '__main__':
-    benchmark_backfill_flow()

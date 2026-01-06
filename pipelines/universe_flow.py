@@ -37,7 +37,7 @@ def get_wikipedia_data() -> tuple[pd.DataFrame]:
 @task
 def get_calendar_data() -> pl.DataFrame:
     bear_lake_client = get_bear_lake_client()
-    return bear_lake_client.query(bl.table('calendar'))
+    return bear_lake_client.query(bl.table("calendar"))
 
 
 @task
@@ -126,9 +126,7 @@ def construct_universe(
     universe_df = (
         pl.DataFrame(snapshots)
         .explode("ticker")
-        .with_columns(
-            pl.col('date').dt.year().alias('year')
-        )
+        .with_columns(pl.col("date").dt.year().alias("year"))
         .sort("date", "ticker")
     )
 
@@ -145,22 +143,14 @@ def upload_universe_df(universe_df: pl.DataFrame):
     # Create
     bear_lake_client.create(
         name=table_name,
-        schema={
-            'date': pl.Date,
-            'year': pl.Int32,
-            'ticker': pl.String
-        },
-        partition_keys=['year'],
-        primary_keys=['date', 'ticker'],
-        mode="replace"
+        schema={"date": pl.Date, "year": pl.Int32, "ticker": pl.String},
+        partition_keys=["year"],
+        primary_keys=["date", "ticker"],
+        mode="replace",
     )
 
     # Insert
-    bear_lake_client.insert(
-        name=table_name,
-        data=universe_df,
-        mode="append"
-    )
+    bear_lake_client.insert(name=table_name, data=universe_df, mode="append")
 
 
 @flow
@@ -178,6 +168,3 @@ def universe_backfill_flow():
     )
 
     upload_universe_df(universe_df)
-
-if __name__ == '__main__':
-    universe_backfill_flow()

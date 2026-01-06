@@ -13,7 +13,7 @@ def calculate_signals(stock_returns: pl.DataFrame) -> pl.DataFrame:
         .select(
             "ticker",
             "date",
-            pl.col('date').dt.year().alias('year'),
+            pl.col("date").dt.year().alias("year"),
             pl.lit("reversal").alias("signal"),
             pl.col("return")
             .log1p()
@@ -32,7 +32,7 @@ def calculate_scores(signals: pl.DataFrame, signal_name: str) -> pl.DataFrame:
     return signals.select(
         "ticker",
         "date",
-        pl.col('date').dt.year().alias('year'),
+        pl.col("date").dt.year().alias("year"),
         pl.lit(signal_name).alias("signal"),
         pl.col("value")
         .sub(pl.col("value").mean())
@@ -50,7 +50,7 @@ def calculate_alphas(
         .select(
             "ticker",
             "date",
-            pl.col('date').dt.year().alias('year'),
+            pl.col("date").dt.year().alias("year"),
             pl.lit(signal_name).alias("signal"),
             pl.lit(IC).mul(pl.col("score")).mul(pl.col("idio_vol")).alias("alpha"),
         )
@@ -67,20 +67,19 @@ def upload_and_merge_signals(signals: pl.DataFrame) -> pl.DataFrame:
     bear_lake_client.create(
         name=table_name,
         schema={
-            'ticker': pl.String,
-            'date': pl.Date,
-            'year': pl.Int32,
-            'signal': pl.String,
-            'value': pl.Float64
+            "ticker": pl.String,
+            "date": pl.Date,
+            "year": pl.Int32,
+            "signal": pl.String,
+            "value": pl.Float64,
         },
-        partition_keys=['year'],
-        primary_keys=['ticker', 'date', 'signal'],
-        mode='skip'
-
+        partition_keys=["year"],
+        primary_keys=["ticker", "date", "signal"],
+        mode="skip",
     )
 
     # Insert
-    bear_lake_client.insert(name=table_name, data=signals, mode='append')
+    bear_lake_client.insert(name=table_name, data=signals, mode="append")
 
     # Optimize table (deduplicate)
     bear_lake_client.optimize(name=table_name)
@@ -95,19 +94,19 @@ def upload_and_merge_scores(scores: pl.DataFrame) -> pl.DataFrame:
     bear_lake_client.create(
         name=table_name,
         schema={
-            'ticker': pl.String,
-            'date': pl.Date,
-            'year': pl.Int32,
-            'signal': pl.String,
-            'score': pl.Float64
+            "ticker": pl.String,
+            "date": pl.Date,
+            "year": pl.Int32,
+            "signal": pl.String,
+            "score": pl.Float64,
         },
-        partition_keys=['year'],
-        primary_keys=['ticker', 'date', 'signal'],
-        mode='skip'
+        partition_keys=["year"],
+        primary_keys=["ticker", "date", "signal"],
+        mode="skip",
     )
 
     # Insert
-    bear_lake_client.insert(name=table_name, data=scores, mode='append')
+    bear_lake_client.insert(name=table_name, data=scores, mode="append")
 
     # Optimize table (deduplicate)
     bear_lake_client.optimize(name=table_name)
@@ -122,20 +121,19 @@ def upload_and_merge_alphas(alphas: pl.DataFrame) -> pl.DataFrame:
     bear_lake_client.create(
         name=table_name,
         schema={
-            'ticker': pl.String,
-            'date': pl.Date,
-            'year': pl.Int32,
-            'signal': pl.String,
-            'alpha': pl.Float64
+            "ticker": pl.String,
+            "date": pl.Date,
+            "year": pl.Int32,
+            "signal": pl.String,
+            "alpha": pl.Float64,
         },
-        partition_keys=['year'],
-        primary_keys=['ticker', 'date', 'signal'],
-        mode='skip'
-
+        partition_keys=["year"],
+        primary_keys=["ticker", "date", "signal"],
+        mode="skip",
     )
 
     # Insert
-    bear_lake_client.insert(name=table_name, data=alphas, mode='append')
+    bear_lake_client.insert(name=table_name, data=alphas, mode="append")
 
     # Optimize table (deduplicate)
     bear_lake_client.optimize(name=table_name)
@@ -192,31 +190,3 @@ def reversal_daily_flow():
     upload_and_merge_signals(signals)
     upload_and_merge_scores(scores)
     upload_and_merge_alphas(alphas)
-
-if __name__ == '__main__':
-    reversal_backfill_flow()
-
-    # date_range = get_trading_date_range(window=21)
-
-    # start = date_range["date"].min()
-    # end = date_range["date"].max()
-
-    # signal_name = "reversal"
-
-    # stock_returns = get_stock_returns(start, end)
-    # idio_vol = get_idio_vol(start, end)
-    # universe = get_universe(end, end)
-
-    # print(stock_returns)
-    # print(idio_vol)
-    # print(universe)
-
-    # signals = calculate_signals(stock_returns).filter(pl.col("date").eq(end))
-    # scores = calculate_scores(signals, signal_name).filter(pl.col("date").eq(end))
-    # alphas = calculate_alphas(scores, idio_vol, signal_name).filter(
-    #     pl.col("date").eq(end)
-    # )
-
-    # print(signals)
-    # print(scores)
-    # print(alphas)

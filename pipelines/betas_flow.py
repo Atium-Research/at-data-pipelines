@@ -14,7 +14,7 @@ def estimate_regression(
     stock_returns: pl.DataFrame, benchmark_returns: pl.DataFrame
 ) -> pl.DataFrame:
     df = stock_returns.join(
-        other=benchmark_returns.rename({'return': 'benchmark_return'}),
+        other=benchmark_returns.rename({"return": "benchmark_return"}),
         how="left",
         on="date",
     )
@@ -62,7 +62,7 @@ def clean_betas(betas: pl.DataFrame) -> pl.DataFrame:
         .select(
             "ticker",
             "date",
-            pl.col("date").dt.year().alias('year'),
+            pl.col("date").dt.year().alias("year"),
             pl.col("beta").alias("historical_beta"),
             pl.col("beta")
             .ewm_mean(half_life=60)
@@ -81,23 +81,19 @@ def upload_and_merge_betas(betas: pl.DataFrame) -> pl.DataFrame:
     bear_lake_client.create(
         name=table_name,
         schema={
-            'ticker': pl.String,
-            'date': pl.Date,
-            'year': pl.Int32,
-            'historical_beta': pl.Float64,
-            'predicted_beta': pl.Float64,
+            "ticker": pl.String,
+            "date": pl.Date,
+            "year": pl.Int32,
+            "historical_beta": pl.Float64,
+            "predicted_beta": pl.Float64,
         },
-        partition_keys=['year'],
-        primary_keys=['ticker', 'date'],
-        mode='skip'
+        partition_keys=["year"],
+        primary_keys=["ticker", "date"],
+        mode="skip",
     )
-    
+
     # Insert data
-    bear_lake_client.insert(
-        name=table_name,
-        data=betas,
-        mode='append'
-    )
+    bear_lake_client.insert(name=table_name, data=betas, mode="append")
 
     # Optimize
     bear_lake_client.optimize(name=table_name)
@@ -142,6 +138,3 @@ def betas_daily_flow():
     betas = clean_betas(betas_raw).filter(pl.col("date").eq(end))
 
     upload_and_merge_betas(betas)
-
-if __name__ == '__main__':
-    betas_backfill_flow()

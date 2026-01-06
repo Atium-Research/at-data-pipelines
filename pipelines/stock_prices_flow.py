@@ -13,7 +13,11 @@ import bear_lake as bl
 @task
 def get_tickers() -> list[str]:
     bear_lake_client = get_bear_lake_client()
-    return bear_lake_client.query(bl.table("universe").select("ticker").unique())['ticker'].sort().to_list()
+    return (
+        bear_lake_client.query(bl.table("universe").select("ticker").unique())["ticker"]
+        .sort()
+        .to_list()
+    )
 
 
 @task
@@ -79,9 +83,7 @@ def get_stock_prices_batches(
 
     return (
         pl.concat(stock_prices_list)
-        .with_columns(
-            pl.col('date').dt.year().alias('year')
-        )
+        .with_columns(pl.col("date").dt.year().alias("year"))
         .sort("date", "ticker")
     )
 
@@ -95,32 +97,27 @@ def upload_and_merge_stock_prices_df(stock_prices_df: pl.DataFrame):
     bear_lake_client.create(
         name=table_name,
         schema={
-            'ticker': pl.String,
-            'date': pl.Date,
-            'open': pl.Float64,
-            'high': pl.Float64,
-            'low': pl.Float64,
-            'close': pl.Float64,
-            'volume': pl.Float64,
-            'trade_count': pl.Float64,
-            'vwap': pl.Float64
+            "ticker": pl.String,
+            "date": pl.Date,
+            "open": pl.Float64,
+            "high": pl.Float64,
+            "low": pl.Float64,
+            "close": pl.Float64,
+            "volume": pl.Float64,
+            "trade_count": pl.Float64,
+            "vwap": pl.Float64,
         },
-        partition_keys=['year'],
-        primary_keys=['date', 'ticker'],
-        mode='skip'
+        partition_keys=["year"],
+        primary_keys=["date", "ticker"],
+        mode="skip",
     )
 
     # Insert into table
-    bear_lake_client.insert(
-        name=table_name,
-        data=stock_prices_df,
-        mode='append'
-    )
+    bear_lake_client.insert(name=table_name, data=stock_prices_df, mode="append")
 
     # Optimize table (deduplicate)
-    bear_lake_client.optimize(
-        name=table_name
-    )
+    bear_lake_client.optimize(name=table_name)
+
 
 @flow
 def stock_prices_backfill_flow():
@@ -150,7 +147,3 @@ def stock_prices_daily_flow():
     tickers = get_tickers()
     stock_prices_df = get_stock_prices_batches(tickers, start, end)
     upload_and_merge_stock_prices_df(stock_prices_df)
-
-
-if __name__ == '__main__':
-    stock_prices_backfill_flow()

@@ -2,10 +2,11 @@ import numpy as np
 import polars as pl
 
 
-def get_factor_loadings_matrix(tickers: list[str], factor_loadings: pl.DataFrame) -> np.ndarray:
+def get_factor_loadings_matrix(
+    tickers: list[str], factor_loadings: pl.DataFrame
+) -> np.ndarray:
     return (
-        factor_loadings
-        .filter(pl.col('ticker').is_in(tickers))
+        factor_loadings.filter(pl.col("ticker").is_in(tickers))
         .sort("ticker", "factor")
         .pivot(index="ticker", on="factor", values="loading")
         .drop("ticker")
@@ -15,8 +16,7 @@ def get_factor_loadings_matrix(tickers: list[str], factor_loadings: pl.DataFrame
 
 def get_factor_covariance_matrix(factor_covariances: pl.DataFrame) -> np.ndarray:
     return (
-        factor_covariances
-        .sort("factor_1", "factor_2")
+        factor_covariances.sort("factor_1", "factor_2")
         .pivot(index="factor_1", on="factor_2", values="covariance")
         .drop("factor_1")
         .to_numpy()
@@ -24,7 +24,11 @@ def get_factor_covariance_matrix(factor_covariances: pl.DataFrame) -> np.ndarray
 
 
 def get_idio_vol_matrix(tickers: list[str], idio_vol: pl.DataFrame) -> np.ndarray:
-    return np.diag(idio_vol.filter(pl.col('ticker').is_in(tickers)).sort("ticker")["idio_vol"].to_numpy())
+    return np.diag(
+        idio_vol.filter(pl.col("ticker").is_in(tickers))
+        .sort("ticker")["idio_vol"]
+        .to_numpy()
+    )
 
 
 def construct_covariance_matrix(
