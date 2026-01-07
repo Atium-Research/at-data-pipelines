@@ -19,6 +19,10 @@ from betas_flow import betas_backfill_flow, betas_daily_flow
 from portfolio_weights_flow import (
     portfolio_weights_daily_flow,
 )
+from portfolio_history_flow import (
+    portfolio_history_backfill_flow,
+    portfolio_history_daily_flow,
+)
 from trading_flow import trading_daily_flow
 from prefect import flow, serve
 from prefect.schedules import Cron
@@ -64,6 +68,10 @@ if __name__ == "__main__":
             name="trading-daily-flow",
             schedule=Cron("30 7 * * *", timezone="America/Denver"),
         ),
+        portfolio_history_daily_flow.to_deployment(
+            name="portfolio-history-daily-flow",
+            schedule=Cron("0 2 * * *", timezone="America/Denver"),
+        ),
         backfill_flow.to_deployment(name="backfill-flow"),
         calendar_backfill_flow.to_deployment(name="calendar-backfill-flow"),
         universe_backfill_flow.to_deployment(name="universe-backfill-flow"),
@@ -80,4 +88,7 @@ if __name__ == "__main__":
         reversal_backfill_flow.to_deployment(name="reversal-backfill-flow"),
         benchmark_backfill_flow.to_deployment(name="benchmark-backfill-flow"),
         betas_backfill_flow.to_deployment(name="betas-backfill-flow"),
+        portfolio_history_backfill_flow.to_deployment(
+            name="portfolio-history-backfill-flow"
+        ),
     )
