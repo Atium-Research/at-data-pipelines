@@ -7,6 +7,7 @@ import polars as pl
 import bear_lake as bl
 from utils import get_last_market_date
 from prefect import task, flow
+from variables import TIME_ZONE
 
 
 @task
@@ -103,7 +104,7 @@ def portfolio_history_backfill_flow():
 @flow
 def portfolio_history_daily_flow():
     last_market_date = get_last_market_date()
-    yesterday = dt.date.today() - dt.timedelta(days=1)
+    yesterday = (dt.datetime.now(TIME_ZONE) - dt.timedelta(days=1)).date()
 
     # Only get new data if yesterday was the last market date
     if last_market_date != yesterday:
