@@ -1,11 +1,16 @@
+from utils.slack import send_actual_trades_summary
 from utils import get_portfolio_weights
+from utils.alpaca import get_alpaca_filled_orders
 import datetime as dt
 import polars as pl
-from clients import get_alpaca_trading_client
-from alpaca.trading import MarketOrderRequest, GetOrdersRequest, ClosePositionRequest
+from clients import (
+    get_alpaca_trading_client,
+)
+from alpaca.trading import MarketOrderRequest, GetOrdersRequest
 from alpaca.trading.enums import OrderSide, TimeInForce, QueryOrderStatus
-from prefect import task, flow
+from prefect import task, flow, get_run_logger
 import pandas_market_calendars as mcal
+import time
 
 
 @task
@@ -129,6 +134,48 @@ def place_all_orders(notional_deltas: pl.DataFrame):
 
 
 @task
+def send_fill_status_to_slack(trade_start_time: dt.datetime):
+    logger = get_run_logger()
+
+    # jhill naive polling approach to wait for orders to fill before sending Slack notification
+    logger.info("Waiting for orders to fill...")
+    max_wait_minutes = 10
+    check_interval_seconds = 60
+    elapsed_time = 0
+
+    alpaca_client = get_alpaca_trading_client()
+
+    while elapsed_time < max_wait_minutes * 60:
+        filter = GetOrdersRequest(status=QueryOrderStatus.OPEN)
+        open_orders = alpaca_client.get_orders(filter)
+        if len(open_orders) == 0:
+            logger.info(f"All orders filled after {elapsed_time} seconds")
+            break
+
+        logger.info(
+            f"Still have {len(open_orders)} open orders, waiting {check_interval_seconds}s..."
+        )
+        time.sleep(check_interval_seconds)
+        elapsed_time += check_interval_seconds
+    else:
+        logger.warning(
+            f"Reached max wait time of {max_wait_minutes} minutes, some orders may still be open"
+        )
+
+    try:
+        filled_orders = get_alpaca_filled_orders(after=trade_start_time)
+        logger.info(f"Found {len(filled_orders)} filled orders")
+
+        if len(filled_orders) > 0:
+            send_actual_trades_summary(filled_orders)
+            logger.info("Sent Slack notification for executed trades")
+        else:
+            logger.warning("No filled orders found")
+    except Exception as e:
+        logger.error(f"Failed to send Slack notification for actual trades: {e}")
+
+
+@task
 def get_last_trading_date() -> dt.date:
     nyse = mcal.get_calendar("NYSE")
     today = dt.datetime.now().date()
@@ -144,6 +191,8 @@ def get_last_trading_date() -> dt.date:
 
 @flow
 def trading_daily_flow():
+    trade_start_time = dt.datetime.now()
+
     last_trading_date = get_last_trading_date()
     weights = get_portfolio_weights(last_trading_date, last_trading_date)
 
@@ -168,3 +217,4 @@ def trading_daily_flow():
 
     close_positions(positions_to_close)
     place_all_orders(notional_deltas)
+    send_fill_status_to_slack(trade_start_time)

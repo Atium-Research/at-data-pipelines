@@ -1,7 +1,9 @@
 from alpaca.data import StockHistoricalDataClient
-from alpaca.trading import TradingClient
+from alpaca.trading import TradingClient, GetOrdersRequest
+from alpaca.trading.enums import QueryOrderStatus
 import os
 from dotenv import load_dotenv
+import datetime as dt
 
 load_dotenv()
 
