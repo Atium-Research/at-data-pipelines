@@ -42,6 +42,7 @@ def daily_flow():
     benchmark_daily_flow()  # Depends on stock_returns
     betas_daily_flow()  # Depends on stock_returns and benchmark_returns
     portfolio_weights_daily_flow()  # Depends on everything
+    portfolio_history_daily_flow()
 
 
 @flow
@@ -67,10 +68,6 @@ if __name__ == "__main__":
         trading_daily_flow.to_deployment(
             name="trading-daily-flow",
             schedule=Cron("30 7 * * *", timezone="America/Denver"),
-        ),
-        portfolio_history_daily_flow.to_deployment(
-            name="portfolio-history-daily-flow",
-            schedule=Cron("0 2 * * *", timezone="America/Denver"),
         ),
         backfill_flow.to_deployment(name="backfill-flow"),
         calendar_backfill_flow.to_deployment(name="calendar-backfill-flow"),

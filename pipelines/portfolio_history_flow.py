@@ -94,7 +94,7 @@ def upload_and_merge_portfolio_history(portfolio_history: pl.DataFrame):
 @flow
 def portfolio_history_backfill_flow():
     start = dt.date(2026, 1, 2)
-    end = dt.date.today() - dt.timedelta(days=1)
+    end = (dt.datetime.now(TIME_ZONE) - dt.timedelta(days=1)).date()
 
     portfolio_history = get_portfolio_history(start, end)
 
