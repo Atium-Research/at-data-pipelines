@@ -33,12 +33,10 @@ def get_portfolio_history_by_date(date_: dt.date) -> pl.DataFrame:
     return pl.DataFrame(
         {
             "timestamp": portfolio_history.timestamp,
-            "daily_cumulative_return": portfolio_history.profit_loss_pct,
-            "daily_values": portfolio_history.base_value,
+            "equity": portfolio_history.equity,
         }
     ).with_columns(
         pl.from_epoch("timestamp").dt.convert_time_zone("UTC"),
-        pl.col("daily_values").mul(pl.col("daily_cumulative_return").add(1)),
     )
 
 
@@ -76,8 +74,7 @@ def upload_and_merge_portfolio_history(portfolio_history: pl.DataFrame):
         name=table_name,
         schema={
             "timestamp": pl.Datetime,
-            "daily_cumulative_return": pl.Float64,
-            "daily_values": pl.Float64,
+            "equity": pl.Float64,
         },
         partition_keys=None,
         primary_keys=["timestamp"],
