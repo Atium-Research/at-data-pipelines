@@ -1,9 +1,11 @@
-from prefect import task, flow
-import polars as pl
 import datetime as dt
+
+import polars as pl
 from clients import get_bear_lake_client
+from prefect import flow, task
+from utils import (get_idio_vol, get_stock_returns, get_trading_date_range,
+                   get_universe)
 from variables import IC
-from utils import get_trading_date_range, get_idio_vol, get_stock_returns, get_universe
 
 
 @task

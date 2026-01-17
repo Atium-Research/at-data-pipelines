@@ -1,17 +1,16 @@
-from utils.slack import send_actual_trades_summary
-from utils import get_portfolio_weights
-from utils.alpaca import get_alpaca_filled_orders
 import datetime as dt
-import polars as pl
-from clients import (
-    get_alpaca_trading_client,
-)
-from alpaca.trading import MarketOrderRequest, GetOrdersRequest
-from alpaca.trading.enums import OrderSide, TimeInForce, QueryOrderStatus
-from prefect import task, flow, get_run_logger
-import pandas_market_calendars as mcal
 import time
 from zoneinfo import ZoneInfo
+
+import pandas_market_calendars as mcal
+import polars as pl
+from alpaca.trading import GetOrdersRequest, MarketOrderRequest
+from alpaca.trading.enums import OrderSide, QueryOrderStatus, TimeInForce
+from clients import get_alpaca_trading_client
+from prefect import flow, get_run_logger, task
+from utils import get_portfolio_weights
+from utils.alpaca import get_alpaca_filled_orders
+from utils.slack import send_actual_trades_summary
 
 
 @task
@@ -201,7 +200,7 @@ def trading_daily_flow():
         print("Market is not open today!")
         print("Ending flow.")
         return
-    
+
     weights = get_portfolio_weights(last_trading_date, last_trading_date)
 
     if not len(weights) > 0:

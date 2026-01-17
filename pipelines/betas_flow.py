@@ -1,12 +1,14 @@
-import polars as pl
-from clients import get_bear_lake_client
 import datetime as dt
-from statsmodels.regression.rolling import RollingOLS
+
+import polars as pl
 import statsmodels.api as sm
+from clients import get_bear_lake_client
+from prefect import flow, task
+from statsmodels.regression.rolling import RollingOLS
 from tqdm import tqdm
-from prefect import task, flow
-from variables import WINDOW, DISABLE_TQDM
-from utils import get_trading_date_range, get_stock_returns, get_benchmark_returns
+from utils import (get_benchmark_returns, get_stock_returns,
+                   get_trading_date_range)
+from variables import DISABLE_TQDM, WINDOW
 
 
 @task

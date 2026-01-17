@@ -1,12 +1,13 @@
-from clients import get_alpaca_trading_client, get_bear_lake_client
-from alpaca.trading.requests import GetPortfolioHistoryRequest
 import datetime as dt
 from zoneinfo import ZoneInfo
-from rich import print
-import polars as pl
+
 import bear_lake as bl
+import polars as pl
+from alpaca.trading.requests import GetPortfolioHistoryRequest
+from clients import get_alpaca_trading_client, get_bear_lake_client
+from prefect import flow, task
+from rich import print
 from utils import get_last_market_date
-from prefect import task, flow
 from variables import TIME_ZONE
 
 

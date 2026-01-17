@@ -1,7 +1,8 @@
-from clients import get_bear_lake_client
 import datetime as dt
-import polars as pl
+
 import bear_lake as bl
+import polars as pl
+from clients import get_bear_lake_client
 
 
 def get_last_market_date() -> dt.date:

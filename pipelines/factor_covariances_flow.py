@@ -1,9 +1,10 @@
-import polars as pl
 import datetime as dt
+
+import polars as pl
 from clients import get_bear_lake_client
-from prefect import task, flow
+from prefect import flow, task
+from utils import get_etf_returns, get_trading_date_range
 from variables import WINDOW
-from utils import get_trading_date_range, get_etf_returns
 
 
 @task

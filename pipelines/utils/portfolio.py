@@ -1,6 +1,6 @@
-import polars as pl
 import cvxpy as cp
 import numpy as np
+import polars as pl
 
 
 def solve_quadratic_problem(

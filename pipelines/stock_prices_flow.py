@@ -1,13 +1,15 @@
-from clients import get_alpaca_historical_stock_data_client, get_bear_lake_client
-from alpaca.data.requests import StockBarsRequest
-from alpaca.data.enums import Adjustment, DataFeed
-from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
 import datetime as dt
-import polars as pl
-from prefect import flow, task
-from variables import TIME_ZONE
-from utils import get_last_market_date
+
 import bear_lake as bl
+import polars as pl
+from alpaca.data.enums import Adjustment, DataFeed
+from alpaca.data.requests import StockBarsRequest
+from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
+from clients import (get_alpaca_historical_stock_data_client,
+                     get_bear_lake_client)
+from prefect import flow, task
+from utils import get_last_market_date
+from variables import TIME_ZONE
 
 
 @task

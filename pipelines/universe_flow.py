@@ -1,12 +1,13 @@
+import io
+import os
+
+import bear_lake as bl
 import pandas as pd
 import polars as pl
 import requests
-import os
-import io
-from dotenv import load_dotenv
-from prefect import task, flow
 from clients import get_bear_lake_client
-import bear_lake as bl
+from dotenv import load_dotenv
+from prefect import flow, task
 
 load_dotenv()
 

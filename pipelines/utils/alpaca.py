@@ -1,7 +1,8 @@
 import datetime as dt
-from clients import get_alpaca_trading_client
+
 from alpaca.trading import GetOrdersRequest
 from alpaca.trading.enums import QueryOrderStatus
+from clients import get_alpaca_trading_client
 
 
 def get_alpaca_filled_orders(after: dt.datetime):

@@ -1,9 +1,10 @@
-from prefect import task, flow
-import polars as pl
 import datetime as dt
+
+import polars as pl
 from clients import get_bear_lake_client
-from variables import TIME_ZONE
+from prefect import flow, task
 from utils import get_last_market_date, get_universe_returns
+from variables import TIME_ZONE
 
 
 @task

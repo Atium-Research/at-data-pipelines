@@ -1,9 +1,10 @@
-import polars as pl
-import pandas as pd
 import datetime as dt
+
+import pandas as pd
 import pandas_market_calendars as mcal
+import polars as pl
 from clients import get_bear_lake_client
-from prefect import task, flow
+from prefect import flow, task
 
 
 @task

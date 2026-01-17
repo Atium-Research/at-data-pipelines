@@ -1,20 +1,14 @@
 import datetime as dt
 import os
+
 import polars as pl
 import ray
-from utils import (
-    get_covariance_matrix,
-    get_optimal_weights_dynamic,
-    get_alphas,
-    get_idio_vol,
-    get_benchmark_weights,
-    get_factor_covariances,
-    get_factor_loadings,
-)
-from variables import TARGET_ACTIVE_RISK
 from clients import get_bear_lake_client
-from prefect import task, flow
-from utils import get_last_market_date
+from prefect import flow, task
+from utils import (get_alphas, get_benchmark_weights, get_covariance_matrix,
+                   get_factor_covariances, get_factor_loadings, get_idio_vol,
+                   get_last_market_date, get_optimal_weights_dynamic)
+from variables import TARGET_ACTIVE_RISK
 
 # Suppress Ray GPU warning for CPU-only usage
 os.environ["RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO"] = "0"

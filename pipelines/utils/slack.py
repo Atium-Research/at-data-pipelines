@@ -1,7 +1,8 @@
-from slack_sdk.web.slack_response import SlackResponse
+import os
+
 from clients import get_slack_client
 from slack_sdk.errors import SlackApiError
-import os
+from slack_sdk.web.slack_response import SlackResponse
 
 
 def send_actual_trades_summary(filled_orders: list) -> SlackResponse:

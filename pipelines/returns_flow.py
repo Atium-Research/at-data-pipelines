@@ -1,7 +1,7 @@
-from clients import get_bear_lake_client
-from prefect import task, flow
 import bear_lake as bl
 import polars as pl
+from clients import get_bear_lake_client
+from prefect import flow, task
 
 
 @task
