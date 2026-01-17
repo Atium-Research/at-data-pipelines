@@ -11,6 +11,7 @@ from alpaca.trading.enums import OrderSide, TimeInForce, QueryOrderStatus
 from prefect import task, flow, get_run_logger
 import pandas_market_calendars as mcal
 import time
+from zoneinfo import ZoneInfo
 
 
 @task
@@ -194,6 +195,13 @@ def trading_daily_flow():
     trade_start_time = dt.datetime.now()
 
     last_trading_date = get_last_trading_date()
+    today = dt.datetime.now(ZoneInfo("America/New_York")).date()
+
+    if last_trading_date != today:
+        print("Market is not open today!")
+        print("Ending flow.")
+        return
+    
     weights = get_portfolio_weights(last_trading_date, last_trading_date)
 
     if not len(weights) > 0:
