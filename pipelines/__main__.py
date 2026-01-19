@@ -1,5 +1,5 @@
 from benchmark_flow import benchmark_backfill_flow, benchmark_daily_flow
-from pipelines.history_flow import (
+from history_flow import (
     etf_history_backfill_flow,
     etf_history_daily_flow,
     stock_history_backfill_flow,
