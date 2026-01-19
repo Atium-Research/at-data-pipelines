@@ -1,7 +1,9 @@
 from benchmark_flow import benchmark_backfill_flow, benchmark_daily_flow
-from benchmark_history_flow import (
-    benchmark_history_backfill_flow,
-    benchmark_history_daily_flow,
+from pipelines.history_flow import (
+    etf_history_backfill_flow,
+    etf_history_daily_flow,
+    stock_history_backfill_flow,
+    stock_history_daily_flow,
 )
 from betas_flow import betas_backfill_flow, betas_daily_flow
 from calendar_flow import calendar_backfill_flow
@@ -45,7 +47,8 @@ def daily_flow():
     betas_daily_flow()  # Depends on stock_returns and benchmark_returns
     portfolio_weights_daily_flow()  # Depends on everything
     portfolio_history_daily_flow()
-    benchmark_history_daily_flow()
+    etf_history_daily_flow()
+    stock_history_daily_flow()
 
 
 @flow
@@ -91,5 +94,6 @@ if __name__ == "__main__":
         portfolio_history_backfill_flow.to_deployment(
             name="portfolio-history-backfill-flow"
         ),
-        benchmark_history_backfill_flow.to_deployment(name="benchmark-backfill-flow"),
+        etf_history_backfill_flow.to_deployment(name="etf-history-backfill-flow"),
+        stock_history_backfill_flow.to_deployment(name="stock-history-backfill-flow"),
     )

@@ -10,11 +10,19 @@ from clients import get_alpaca_historical_stock_data_client, get_bear_lake_clien
 from prefect import flow, task
 from rich import print
 from utils import get_last_market_date
-from variables import TIME_ZONE
-
+from variables import TIME_ZONE, FACTORS
 
 @task
-def get_benchmark_history_by_date(tickers: list[str], date_: dt.date) -> pl.DataFrame:
+def get_tickers() -> list[str]:
+    bear_lake_client = get_bear_lake_client()
+    return (
+        bear_lake_client.query(bl.table("universe").select("ticker").unique())["ticker"]
+        .sort()
+        .to_list()
+    )
+
+@task
+def get_history_by_date(tickers: list[str], date_: dt.date) -> pl.DataFrame:
     ext_open = dt.time(4, 0, 0, tzinfo=ZoneInfo("America/New_York"))
     ext_close = dt.time(20, 0, 0, tzinfo=ZoneInfo("America/New_York"))
 
@@ -50,22 +58,21 @@ def get_market_dates(start: dt.date, end: dt.date) -> list[dt.date]:
 
 
 @task
-def get_benchmark_history(tickers: list[str], start: dt.date, end: dt.date):
+def get_history(tickers: list[str], start: dt.date, end: dt.date):
     market_dates = get_market_dates(start, end)
 
-    portfolio_history_list = []
+    history_list = []
     for market_date in market_dates:
-        portfolio_history_list.append(
-            get_benchmark_history_by_date(tickers, market_date)
+        history_list.append(
+            get_history_by_date(tickers, market_date)
         )
 
-    return pl.concat(portfolio_history_list)
+    return pl.concat(history_list)
 
 
 @task
-def upload_and_merge_benchmark_history(benchmark_history: pl.DataFrame):
+def upload_and_merge_history(history: pl.DataFrame, table_name: str):
     bear_lake_client = get_bear_lake_client()
-    table_name = "benchmark_history"
 
     # Create table if not exists
     bear_lake_client.create(
@@ -81,34 +88,34 @@ def upload_and_merge_benchmark_history(benchmark_history: pl.DataFrame):
             "vwap": pl.Float64,
             "trade_count": pl.Float64,
         },
-        partition_keys=["ticker"],
+        partition_keys=None,
         primary_keys=["timestamp", "ticker"],
         mode="skip",
     )
 
     # Insert into table
-    bear_lake_client.insert(name=table_name, data=benchmark_history, mode="append")
+    bear_lake_client.insert(name=table_name, data=history, mode="append")
 
     # Optimize table (deduplicate)
     bear_lake_client.optimize(name=table_name)
 
 
 @flow
-def benchmark_history_backfill_flow():
+def etf_history_backfill_flow():
     start = dt.date(2026, 1, 2)
     end = (dt.datetime.now(TIME_ZONE) - dt.timedelta(days=1)).date()
-    tickers = ["SPY"]
+    tickers = FACTORS
 
-    benchmark_history = get_benchmark_history(tickers, start, end)
+    etf_history = get_history(tickers, start, end)
 
-    upload_and_merge_benchmark_history(benchmark_history)
+    upload_and_merge_history(etf_history, "etf_history")
 
 
 @flow
-def benchmark_history_daily_flow():
+def etf_history_daily_flow():
     last_market_date = get_last_market_date()
     yesterday = (dt.datetime.now(TIME_ZONE) - dt.timedelta(days=1)).date()
-    tickers = ["SPY"]
+    tickers = FACTORS
 
     # Only get new data if yesterday was the last market date
     if last_market_date != yesterday:
@@ -117,12 +124,38 @@ def benchmark_history_daily_flow():
         print("Yesterday:", yesterday)
         return
 
-    portfolio_history = get_benchmark_history(
+    etf_history = get_history(
         tickers, last_market_date, last_market_date
     )
 
-    upload_and_merge_benchmark_history(portfolio_history)
+    upload_and_merge_history(etf_history, "etf_history")
+
+@flow
+def stock_history_backfill_flow():
+    start = dt.date(2026, 1, 2)
+    end = (dt.datetime.now(TIME_ZONE) - dt.timedelta(days=1)).date()
+    tickers = get_tickers()
+
+    stock_history = get_history(tickers, start, end)
+
+    upload_and_merge_history(stock_history, "stock_history")
 
 
-if __name__ == "__main__":
-    benchmark_history_backfill_flow()
+@flow
+def stock_history_daily_flow():
+    last_market_date = get_last_market_date()
+    yesterday = (dt.datetime.now(TIME_ZONE) - dt.timedelta(days=1)).date()
+    tickers = get_tickers()
+
+    # Only get new data if yesterday was the last market date
+    if last_market_date != yesterday:
+        print("Market was not open yesterday!")
+        print("Last Market Date:", last_market_date)
+        print("Yesterday:", yesterday)
+        return
+
+    stock_history = get_history(
+        tickers, last_market_date, last_market_date
+    )
+
+    upload_and_merge_history(stock_history, "stock_history")
