@@ -75,7 +75,7 @@ def get_positions_to_close(
 ) -> list[str]:
     return (
         target_notionals.filter(
-            pl.col("target_notional").eq(0),
+            pl.col("target_notional").le(0),
             pl.col("ticker").is_in(current_notionals["ticker"].to_list()),
         )["ticker"]
         .unique()
