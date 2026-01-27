@@ -50,6 +50,62 @@ def categorize_trades(filled_orders: list[dict]) -> dict:
     }
 
 
+def get_position_changes(filled_orders: list[dict]) -> dict:
+    """Identify new positions and exited positions from today's trades."""
+    buys_by_ticker = {}
+    sells_by_ticker = {}
+    
+    for order in filled_orders:
+        ticker = order["ticker"]
+        qty = order["filled_qty"]
+        price = order["filled_avg_price"]
+        notional = order["notional"]
+        
+        if order["side"] == "buy":
+            if ticker not in buys_by_ticker:
+                buys_by_ticker[ticker] = {"qty": 0, "total_notional": 0, "prices": []}
+            buys_by_ticker[ticker]["qty"] += qty
+            buys_by_ticker[ticker]["total_notional"] += notional
+            buys_by_ticker[ticker]["prices"].append(price)
+        else:  # sell
+            if ticker not in sells_by_ticker:
+                sells_by_ticker[ticker] = {"qty": 0, "total_notional": 0, "prices": []}
+            sells_by_ticker[ticker]["qty"] += qty
+            sells_by_ticker[ticker]["total_notional"] += notional
+            sells_by_ticker[ticker]["prices"].append(price)
+    
+    # Determine initiated and exited positions
+    initiated = []
+    exited = []
+    
+    for ticker, buy_data in buys_by_ticker.items():
+        # If we bought but didn't sell this ticker, it's initiated
+        if ticker not in sells_by_ticker:
+            avg_price = buy_data["total_notional"] / buy_data["qty"] if buy_data["qty"] > 0 else 0
+            initiated.append({
+                "ticker": ticker,
+                "qty": buy_data["qty"],
+                "avg_price": avg_price,
+                "notional": buy_data["total_notional"]
+            })
+    
+    for ticker, sell_data in sells_by_ticker.items():
+        # If we sold but didn't buy this ticker, it's exited
+        if ticker not in buys_by_ticker:
+            avg_price = sell_data["total_notional"] / sell_data["qty"] if sell_data["qty"] > 0 else 0
+            exited.append({
+                "ticker": ticker,
+                "qty": sell_data["qty"],
+                "avg_price": avg_price,
+                "notional": sell_data["total_notional"]
+            })
+    
+    return {
+        "initiated": initiated,
+        "exited": exited
+    }
+
+
 def send_daily_trading_summary(
     filled_orders: list[dict],
     account_value: float,
@@ -86,6 +142,7 @@ def send_daily_trading_summary(
     positions = get_current_positions_with_weights(account_value)
     top_5_positions = positions[:5]
     trade_summary = categorize_trades(filled_orders)
+    position_changes = get_position_changes(filled_orders)
     
     # Calculate day P&L
     day_pnl = account_value - (previous_account_value or account_value)
@@ -147,6 +204,34 @@ def send_daily_trading_summary(
         blocks.append({
             "type": "section",
             "text": {"type": "mrkdwn", "text": "*Largest Trades*\n" + "\n".join(largest_lines)},
+        })
+    
+    # Initiated positions section
+    if position_changes["initiated"]:
+        initiated_lines = [f"*New Positions ({len(position_changes['initiated'])})*"]
+        for pos in position_changes["initiated"]:
+            initiated_lines.append(
+                f"✅ {pos['ticker']}: {pos['qty']:.0f} shares @ ${pos['avg_price']:.2f} = ${pos['notional']:,.2f}"
+            )
+        
+        blocks.append({"type": "divider"})
+        blocks.append({
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": "\n".join(initiated_lines)},
+        })
+    
+    # Exited positions section
+    if position_changes["exited"]:
+        exited_lines = [f"*Positions Exited ({len(position_changes['exited'])})*"]
+        for pos in position_changes["exited"]:
+            exited_lines.append(
+                f"❌ {pos['ticker']}: {pos['qty']:.0f} shares @ ${pos['avg_price']:.2f} = ${pos['notional']:,.2f}"
+            )
+        
+        blocks.append({"type": "divider"})
+        blocks.append({
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": "\n".join(exited_lines)},
         })
     
     # Top 5 positions section
