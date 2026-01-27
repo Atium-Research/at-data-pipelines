@@ -10,7 +10,7 @@ from clients import get_alpaca_trading_client
 from prefect import flow, get_run_logger, task
 from utils import get_portfolio_weights
 from utils.alpaca import get_alpaca_filled_orders
-from utils.slack import send_actual_trades_summary
+from utils.slack_daily_summary import send_daily_trading_summary
 
 
 @task
@@ -164,15 +164,18 @@ def send_fill_status_to_slack(trade_start_time: dt.datetime):
 
     try:
         filled_orders = get_alpaca_filled_orders(after=trade_start_time)
+        account = alpaca_client.get_account()
+        account_value = float(account.equity)
+        
         logger.info(f"Found {len(filled_orders)} filled orders")
 
         if len(filled_orders) > 0:
-            send_actual_trades_summary(filled_orders)
-            logger.info("Sent Slack notification for executed trades")
+            send_daily_trading_summary(filled_orders, account_value)
+            logger.info("Sent Slack notification for daily trading summary")
         else:
             logger.warning("No filled orders found")
     except Exception as e:
-        logger.error(f"Failed to send Slack notification for actual trades: {e}")
+        logger.error(f"Failed to send Slack notification for daily trading summary: {e}")
 
 
 @task
