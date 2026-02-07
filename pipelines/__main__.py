@@ -15,7 +15,6 @@ from returns_flow import returns_backfill_flow
 from reversal_flow import reversal_backfill_flow, reversal_daily_flow
 from stock_prices_flow import (stock_prices_backfill_flow,
                                stock_prices_daily_flow)
-from trading_flow import trading_daily_flow
 from universe_flow import universe_backfill_flow
 from utils.slack_failure_handler import create_failure_handler
 
@@ -56,10 +55,6 @@ if __name__ == "__main__":
     serve(
         daily_flow.to_deployment(
             name="daily-flow", schedule=Cron("0 2 * * *", timezone="America/Denver")
-        ),
-        trading_daily_flow.to_deployment(
-            name="trading-daily-flow",
-            schedule=Cron("30 7 * * *", timezone="America/Denver"),
         ),
         backfill_flow.to_deployment(name="backfill-flow"),
     )
