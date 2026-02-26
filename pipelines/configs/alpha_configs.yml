@@ -1,0 +1,11 @@
+configs:
+  - name: reversal_21
+    signal: reversal
+    parameters:
+    - window: 21
+  
+  - name: momentum_230_21
+    signal: momentum
+    parameters:
+    - window: 230
+    - shift: 21
