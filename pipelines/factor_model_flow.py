@@ -1,29 +1,11 @@
 import datetime as dt
-from pathlib import Path
 
 import polars as pl
-import yaml
 from clients import get_bear_lake_client
+from configs import load_risk_model_configs
 from prefect import flow, task
 from utils import get_etf_returns, get_stock_returns, get_trading_date_range
 from atium.factor_model import estimate_factor_model, estimate_factor_covariances
-
-CONFIG_PATH = Path(__file__).parent / "configs" / "risk_model_config.yml"
-
-
-def load_risk_model_configs() -> list[dict]:
-    with open(CONFIG_PATH) as f:
-        raw = yaml.safe_load(f)
-    return [
-        {
-            "name": c["name"],
-            "type": c["type"],
-            "factors": c["factors"],
-            "window": c["window"],
-            "half_life": c["half-life"],
-        }
-        for c in raw["configs"]
-    ]
 
 
 @task

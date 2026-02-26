@@ -1,29 +1,13 @@
 import datetime as dt
-from pathlib import Path
 
 import polars as pl
-import yaml
 from clients import get_bear_lake_client
+from configs import load_alpha_configs
 from prefect import flow, task
 from signals import REGISTRY
 from utils import (get_idio_vol, get_stock_returns, get_trading_date_range,
                    get_universe)
 from atium.signals import compute_alphas, compute_scores
-
-CONFIG_PATH = Path(__file__).parent / "configs" / "alpha_configs.yml"
-
-
-def load_alpha_configs() -> list[dict]:
-    with open(CONFIG_PATH) as f:
-        raw = yaml.safe_load(f)
-    return [
-        {
-            "name": c["name"],
-            "signal": c["signal"],
-            "parameters": {k: v for d in c["parameters"] for k, v in d.items()},
-        }
-        for c in raw["configs"]
-    ]
 
 
 @task
