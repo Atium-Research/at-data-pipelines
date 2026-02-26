@@ -19,7 +19,7 @@ def load_alpha_configs() -> list[dict]:
 
 
 def load_risk_model_configs() -> list[dict]:
-    with open(_CONFIGS_DIR / "risk_model_config.yml") as f:
+    with open(_CONFIGS_DIR / "risk_model_configs.yml") as f:
         raw = yaml.safe_load(f)
     return [
         {
