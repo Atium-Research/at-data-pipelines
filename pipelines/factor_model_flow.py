@@ -6,7 +6,7 @@ import yaml
 from clients import get_bear_lake_client
 from prefect import flow, task
 from utils import get_etf_returns, get_stock_returns, get_trading_date_range
-from atium.factor_model import estimate_factor_model
+from atium.factor_model import estimate_factor_model, estimate_factor_covariances
 
 CONFIG_PATH = Path(__file__).parent / "configs" / "risk_model_config.yml"
 
@@ -92,6 +92,32 @@ def upload_and_merge_idio_vol(idio_vol: pl.DataFrame) -> None:
     # Optimize
     bear_lake_client.optimize(name=table_name)
 
+@task
+def upload_and_merge_factor_covariances(factor_covariances: pl.DataFrame):
+    bear_lake_client = get_bear_lake_client()
+    table_name = "factor_covariances"
+
+    # Create table if not exists
+    bear_lake_client.create(
+        name=table_name,
+        schema={
+            "name": pl.String,
+            "date": pl.Date,
+            "year": pl.Int32,
+            "factor_1": pl.String,
+            "factor_2": pl.String,
+            "covariance": pl.Float64,
+        },
+        partition_keys=["year"],
+        primary_keys=["date", "factor_1", "factor_2", "name"],
+        mode="skip",
+    )
+
+    # Insert data
+    bear_lake_client.insert(name=table_name, data=factor_covariances, mode="append")
+
+    # Optimize
+    bear_lake_client.optimize(name=table_name)
 
 def run_configs(
     configs: list[dict],
@@ -111,9 +137,14 @@ def run_configs(
             stock_returns, config_etf_returns, window=window, half_life=half_life
         )
 
+        factor_covariances = estimate_factor_covariances(
+            factor_returns=config_etf_returns, window=window, half_life=half_life
+        )
+
         if filter_date is not None:
             factor_loadings = factor_loadings.filter(pl.col("date").eq(filter_date))
             idio_vol = idio_vol.filter(pl.col("date").eq(filter_date))
+            factor_covariances = factor_covariances.filter(pl.col('date').eq(filter_date))
 
         factor_loadings = factor_loadings.with_columns(
             pl.lit(name).alias("name"),
@@ -123,9 +154,14 @@ def run_configs(
             pl.lit(name).alias("name"),
             pl.col("date").dt.year().alias("year"),
         )
+        factor_covariances = factor_covariances.with_columns(
+            pl.lit(name).alias("name"),
+            pl.col('date').dt.year().alias('year')
+        )
 
         upload_and_merge_factor_loadings(factor_loadings)
         upload_and_merge_idio_vol(idio_vol)
+        upload_and_merge_factor_covariances(factor_covariances)
 
 
 @flow
