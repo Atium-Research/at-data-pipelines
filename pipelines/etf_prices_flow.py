@@ -11,11 +11,59 @@ from utils import get_last_market_date
 from variables import TIME_ZONE
 
 FACTORS = sorted([
+    # Market
     'SPY',
-    'VLUE',
-    'QUAL',
-    'MTUM',
-    'USMV'
+
+    # Style / Value & Growth
+    'VLUE',   # MSCI USA Value Factor
+    'IWD',    # Russell 1000 Value
+    'VTV',    # Vanguard Value
+    'IWF',    # Russell 1000 Growth
+    'VUG',    # Vanguard Growth
+
+    # Quality
+    'QUAL',   # MSCI USA Quality Factor
+
+    # Momentum
+    'MTUM',   # MSCI USA Momentum Factor
+
+    # Low Volatility / Min Vol
+    'USMV',   # MSCI USA Min Volatility
+    'SPLV',   # S&P 500 Low Volatility
+
+    # Size
+    'IWM',    # Russell 2000 (small cap)
+    'MDY',    # S&P MidCap 400
+
+    # Yield / Dividend
+    'DVY',    # iShares Select Dividend
+    'VYM',    # Vanguard High Dividend Yield
+    'SCHD',   # Schwab US Dividend Equity
+
+    # Sector proxies (useful for sector-neutral factor work)
+    'XLF',    # Financials
+    'XLK',    # Technology
+    'XLE',    # Energy
+    'XLV',    # Healthcare
+    'XLI',    # Industrials
+    'XLU',    # Utilities
+    'XLP',    # Consumer Staples
+    'XLY',    # Consumer Discretionary
+    'XLC',    # Communication Services
+    'XLRE',   # Real Estate
+    'XLB',    # Materials
+
+    # Fixed Income / Rate factors
+    'TLT',    # 20+ Year Treasury (duration)
+    'IEF',    # 7-10 Year Treasury
+    'SHY',    # 1-3 Year Treasury (short rate)
+    'HYG',    # High Yield Corporate (credit spread)
+    'LQD',    # Investment Grade Corporate
+
+    # Macro / Alternative factors
+    'GLD',    # Gold
+    'DBC',    # Commodities Broad
+    'UUP',    # US Dollar Index
 ])
 
 
@@ -145,3 +193,6 @@ def etf_prices_daily_flow():
     stock_prices_df = get_etf_prices_batches(FACTORS, start, end)
 
     upload_and_merge_etf_prices_df(stock_prices_df)
+
+if __name__ == '__main__':
+    etf_prices_backfill_flow()

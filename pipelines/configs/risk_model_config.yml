@@ -1,0 +1,12 @@
+configs:
+  - name: ahfm1
+    type: factor-model
+    factors:
+      - SPY
+      - VLUE
+      - QUAL
+      - MTUM
+      - USMV
+    window: 252
+    half-life: 60
+    

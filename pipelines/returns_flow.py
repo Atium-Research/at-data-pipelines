@@ -82,3 +82,6 @@ def materialize_etf_returns():
 def returns_backfill_flow():
     materialize_stock_returns()
     materialize_etf_returns()
+
+if __name__ == '__main__':
+    returns_backfill_flow()

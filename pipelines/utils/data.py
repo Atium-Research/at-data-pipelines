@@ -85,14 +85,17 @@ def get_benchmark_returns(start: dt.date, end: dt.date) -> pl.DataFrame:
 
 
 @task
-def get_factor_loadings(start: dt.date, end: dt.date) -> pl.DataFrame:
+def get_factor_loadings(start: dt.date, end: dt.date, name: str | None = None) -> pl.DataFrame:
     bear_lake_client = get_bear_lake_client()
-    return bear_lake_client.query(
+    query = (
         bl.table("universe")
         .join(other=bl.table("factor_loadings"), on=["date", "ticker"], how="left")
         .filter(pl.col("date").is_between(start, end), pl.col("loading").is_not_null())
-        .select("date", "ticker", "factor", "loading")
-        .sort("ticker", "date")
+    )
+    if name is not None:
+        query = query.filter(pl.col("name").eq(name))
+    return bear_lake_client.query(
+        query.select("date", "ticker", "factor", "loading").sort("ticker", "date")
     )
 
 
@@ -108,14 +111,17 @@ def get_factor_covariances(start: dt.date, end: dt.date) -> pl.DataFrame:
 
 
 @task
-def get_idio_vol(start: dt.date, end: dt.date) -> pl.DataFrame:
+def get_idio_vol(start: dt.date, end: dt.date, name: str | None = None) -> pl.DataFrame:
     bear_lake_client = get_bear_lake_client()
-    return bear_lake_client.query(
+    query = (
         bl.table("universe")
         .join(other=bl.table("idio_vol"), on=["date", "ticker"], how="left")
         .filter(pl.col("date").is_between(start, end), pl.col("idio_vol").is_not_null())
-        .select("date", "ticker", "idio_vol")
-        .sort("ticker", "date")
+    )
+    if name is not None:
+        query = query.filter(pl.col("name").eq(name))
+    return bear_lake_client.query(
+        query.select("date", "ticker", "idio_vol").sort("ticker", "date")
     )
 
 

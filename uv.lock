@@ -268,6 +268,23 @@ wheels = [
 ]
 
 [[package]]
+name = "atium"
+version = "0.1.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "bear-lake" },
+    { name = "cvxpy" },
+    { name = "dataframely" },
+    { name = "numpy" },
+    { name = "polars" },
+    { name = "tqdm" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/da/4e/11e2b922686bee86daf9d0a447f702028c1269a812e35b55278d980d6f47/atium-0.1.9.tar.gz", hash = "sha256:2ed8b8b0c1d4330634fe28afb0ece66b3430dfc8f3d496a16692fc1fe298fabc", size = 12628, upload-time = "2026-02-25T21:29:47.004Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/21/09/e14eb5e6fc908e0feb07b24d1d12968abad9fbab8676cef35ddda5950cb4/atium-0.1.9-py3-none-any.whl", hash = "sha256:b229f21991a152b26b53cc4cb03964c61f292590227ef9058f1e9a90c1e6bae0", size = 15567, upload-time = "2026-02-25T21:29:46.197Z" },
+]
+
+[[package]]
 name = "attrs"
 version = "25.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -646,6 +663,24 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/a9/95/a3dbbb5028f35eafb79008e7522a75244477d2838f38cbb722248dabc2a8/cycler-0.12.1.tar.gz", hash = "sha256:88bb128f02ba341da8ef447245a9e138fae777f6a23943da4540077d3601eb1c", size = 7615, upload-time = "2023-10-07T05:32:18.335Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e7/05/c19819d5e3d95294a6f5947fb9b9629efb316b96de511b418c53d245aae6/cycler-0.12.1-py3-none-any.whl", hash = "sha256:85cef7cff222d8644161529808465972e51340599459b8ac3ccbac5a854e0d30", size = 8321, upload-time = "2023-10-07T05:32:16.783Z" },
+]
+
+[[package]]
+name = "dataframely"
+version = "2.7.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "fsspec" },
+    { name = "numpy" },
+    { name = "polars" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/96/14/0416e93e85d2e2c485654a6d0e2c3e207e7fd4e7bbdb95cf92f2cd386859/dataframely-2.7.0.tar.gz", hash = "sha256:752a39abff4494374040dea3662ba5fed63217c9467d8ca52b68e4587988f6ff", size = 394321, upload-time = "2026-02-06T10:42:13.876Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bf/85/ed400079179f8630be56ab22c1ea082c1da3433dddffcbf31dde33f20594/dataframely-2.7.0-cp310-abi3-macosx_10_12_x86_64.whl", hash = "sha256:9cb9717fc4ba54e718468c019a7850672caba4b3d770f7fd729c74f74ec54eae", size = 5156166, upload-time = "2026-02-06T10:42:05.254Z" },
+    { url = "https://files.pythonhosted.org/packages/46/b1/c2d4cc98a72f41ad142a3c2dacb400d61eeda973cccae492dec473598315/dataframely-2.7.0-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:492eb798d336720e7df82ea794a04ce7d8eaa5c23a9e346ce3918addef579da8", size = 4803430, upload-time = "2026-02-06T10:42:07.168Z" },
+    { url = "https://files.pythonhosted.org/packages/e4/43/270ec5bffc8bbd4b392ae004615f58c887c5a4eaf0ea43c28755c20a38e6/dataframely-2.7.0-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6f726c49fe907d87ef121b3a24050dbe155b6cf2a98c48dee999d30e5170097f", size = 5033880, upload-time = "2026-02-06T10:42:09.14Z" },
+    { url = "https://files.pythonhosted.org/packages/7b/f5/a383d8c068e546f081a058298695aa80d43a9142c1bd8bc0cac70da1abce/dataframely-2.7.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6fc8850a27abe357f03f8a3f7dafb6895c3e13ead160dba67ca04d95e91059ac", size = 5336843, upload-time = "2026-02-06T10:42:11.034Z" },
+    { url = "https://files.pythonhosted.org/packages/4b/35/276f76f675f6aa6daf68aa136521958f2305d2d53f28dd55ad000956df24/dataframely-2.7.0-cp310-abi3-win_amd64.whl", hash = "sha256:ab84c8bc74ae41cfc68f5e9d13968d1583d5449ccc9e2f85053a362e72eb9024", size = 5350386, upload-time = "2026-02-06T10:42:12.425Z" },
 ]
 
 [[package]]
@@ -1586,6 +1621,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "alpaca-py" },
+    { name = "atium" },
     { name = "bear-lake" },
     { name = "beautifulsoup4" },
     { name = "cvxpy" },
@@ -1612,6 +1648,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "alpaca-py", specifier = ">=0.43.2" },
+    { name = "atium", specifier = ">=0.1.9" },
     { name = "bear-lake", specifier = ">=0.1.5" },
     { name = "beautifulsoup4", specifier = ">=4.14.3" },
     { name = "cvxpy", specifier = ">=1.7.5" },
