@@ -52,14 +52,17 @@ def get_etf_returns(start: dt.date, end: dt.date) -> pl.DataFrame:
 
 
 @task
-def get_alphas(start: dt.date, end: dt.date) -> pl.DataFrame:
+def get_alphas(start: dt.date, end: dt.date, name: str | None = None) -> pl.DataFrame:
     bear_lake_client = get_bear_lake_client()
-    return bear_lake_client.query(
+    query = (
         bl.table("universe")
         .join(other=bl.table("alphas"), on=["date", "ticker"], how="left")
         .filter(pl.col("date").is_between(start, end), pl.col("alpha").is_not_null())
-        .select("date", "ticker", "alpha")
-        .sort("ticker", "date")
+    )
+    if name is not None:
+        query = query.filter(pl.col("name").eq(name))
+    return bear_lake_client.query(
+        query.select("date", "ticker", "alpha").sort("ticker", "date")
     )
 
 
@@ -100,13 +103,16 @@ def get_factor_loadings(start: dt.date, end: dt.date, name: str | None = None) -
 
 
 @task
-def get_factor_covariances(start: dt.date, end: dt.date) -> pl.DataFrame:
+def get_factor_covariances(start: dt.date, end: dt.date, name: str | None = None) -> pl.DataFrame:
     bear_lake_client = get_bear_lake_client()
-    return bear_lake_client.query(
+    query = (
         bl.table("factor_covariances")
         .filter(pl.col("date").is_between(start, end))
-        .select("date", "factor_1", "factor_2", "covariance")
-        .sort("date")
+    )
+    if name is not None:
+        query = query.filter(pl.col("name").eq(name))
+    return bear_lake_client.query(
+        query.select("date", "factor_1", "factor_2", "covariance").sort("date")
     )
 
 
@@ -126,13 +132,16 @@ def get_idio_vol(start: dt.date, end: dt.date, name: str | None = None) -> pl.Da
 
 
 @task
-def get_portfolio_weights(start: dt.date, end: dt.date) -> pl.DataFrame:
+def get_portfolio_weights(start: dt.date, end: dt.date, name: str | None = None) -> pl.DataFrame:
     bear_lake_client = get_bear_lake_client()
-    return bear_lake_client.query(
+    query = (
         bl.table("portfolio_weights")
         .filter(pl.col("date").is_between(start, end))
-        .select("date", "ticker", "weight")
-        .sort("ticker", "date")
+    )
+    if name is not None:
+        query = query.filter(pl.col("name").eq(name))
+    return bear_lake_client.query(
+        query.select("date", "ticker", "weight").sort("ticker", "date")
     )
 
 

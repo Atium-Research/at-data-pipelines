@@ -31,3 +31,19 @@ def load_risk_model_configs() -> list[dict]:
         }
         for c in raw["configs"]
     ]
+
+
+def load_portfolio_configs() -> list[dict]:
+    with open(_CONFIGS_DIR / "portfolio_configs.yml") as f:
+        raw = yaml.safe_load(f)
+    return [
+        {
+            "name": c["name"],
+            "alpha": c["alpha"],
+            "risk_model": c["risk_model"],
+            "objective": c["objective"],
+            "parameters": {k.replace("-", "_"): v for d in c["parameters"] for k, v in d.items()},
+            "constraints": c["constraints"],
+        }
+        for c in raw["configs"]
+    ]

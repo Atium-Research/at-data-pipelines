@@ -1,0 +1,11 @@
+configs:
+  - name: ahp1
+    alpha: reversal_21
+    risk_model: ahfm1
+    objective: max-utility-with-target-active-risk
+    parameters:
+    - target-active-risk: .05
+    constraints:
+    - fully-invested
+    - long-only
+
