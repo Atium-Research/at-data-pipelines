@@ -9,8 +9,6 @@ from alpaca.trading.enums import OrderSide, QueryOrderStatus, TimeInForce
 from clients import get_alpaca_trading_client
 from prefect import flow, get_run_logger, task
 from utils import get_portfolio_weights
-from utils.slack_daily_summary import send_daily_trading_summary
-from utils.slack_failure_handler import create_failure_handler
 
 
 @task
@@ -134,115 +132,6 @@ def place_all_orders(notional_deltas: pl.DataFrame):
 
 
 @task
-def wait_for_orders_to_fill(
-    max_wait_minutes: int = 10, check_interval_seconds: int = 60
-) -> bool:
-    """
-    Poll until all open orders are filled or max wait time is reached.
-
-    Returns True if all orders filled, False if timed out with orders still open.
-    """
-    logger = get_run_logger()
-    logger.info("Waiting for orders to fill...")
-
-    alpaca_client = get_alpaca_trading_client()
-    elapsed_time = 0
-
-    while elapsed_time < max_wait_minutes * 60:
-        filter = GetOrdersRequest(status=QueryOrderStatus.OPEN)
-        open_orders = alpaca_client.get_orders(filter)
-
-        if len(open_orders) == 0:
-            logger.info(f"All orders filled after {elapsed_time} seconds")
-            return True
-
-        logger.info(
-            f"Still have {len(open_orders)} open orders, waiting {check_interval_seconds}s..."
-        )
-        time.sleep(check_interval_seconds)
-        elapsed_time += check_interval_seconds
-
-    logger.warning(
-        f"Reached max wait time of {max_wait_minutes} minutes, some orders may still be open"
-    )
-    return False
-
-
-@task
-def get_todays_filled_orders() -> list[dict]:
-    """
-    Get all filled orders for today (since market open).
-    """
-    logger = get_run_logger()
-    alpaca_client = get_alpaca_trading_client()
-
-    # Get today's date at market open (9:30 AM ET)
-    today = dt.datetime.now(ZoneInfo("America/New_York")).date()
-    market_open = dt.datetime.combine(
-        today, dt.time(9, 30), tzinfo=ZoneInfo("America/New_York")
-    )
-
-    filter = GetOrdersRequest(
-        status=QueryOrderStatus.CLOSED,
-        after=market_open,
-        until=dt.datetime.now(ZoneInfo("America/New_York")),
-    )
-
-    orders = alpaca_client.get_orders(filter)
-
-    filled_orders = []
-    for order in orders:
-        if (
-            order.filled_at is not None
-            and order.filled_qty
-            and float(order.filled_qty) > 0
-        ):
-            filled_orders.append(
-                {
-                    "ticker": order.symbol,
-                    "side": order.side.value,
-                    "filled_qty": float(order.filled_qty),
-                    "filled_avg_price": (
-                        float(order.filled_avg_price) if order.filled_avg_price else 0
-                    ),
-                    "notional": (
-                        float(order.filled_qty) * float(order.filled_avg_price)
-                        if order.filled_avg_price
-                        else 0
-                    ),
-                    "filled_at": order.filled_at,
-                    "order_id": order.id,
-                }
-            )
-
-    logger.info(f"Found {len(filled_orders)} filled orders for today")
-    return filled_orders
-
-
-@task
-def send_fill_status_to_slack(filled_orders: list[dict]):
-    """
-    Send a Slack notification with the provided filled orders.
-    """
-    logger = get_run_logger()
-
-    try:
-        alpaca_client = get_alpaca_trading_client()
-        account = alpaca_client.get_account()
-        account_value = float(account.equity)
-
-        if len(filled_orders) > 0:
-            send_daily_trading_summary(filled_orders, account_value)
-            logger.info("Sent Slack notification for daily trading summary")
-        else:
-            logger.warning("No filled orders found for today")
-    except Exception as e:
-        logger.error(
-            f"Failed to send Slack notification for daily trading summary: {e}"
-        )
-
-
-@task
 def get_last_market_date() -> list[dt.date]:
     nyse = mcal.get_calendar("NYSE")
     today = dt.datetime.now().date()
@@ -263,7 +152,7 @@ def market_is_open(today: dt.date) -> bool:
     return len(schedule) > 0
 
 
-@flow(on_failure=[create_failure_handler("trading_daily_flow")])
+@flow
 def trading_daily_flow():
     last_trading_date = get_last_market_date()
     today = dt.datetime.now(ZoneInfo("America/New_York")).date()
@@ -296,7 +185,3 @@ def trading_daily_flow():
 
     close_positions(positions_to_close)
     place_all_orders(notional_deltas)
-
-    wait_for_orders_to_fill()
-    filled_orders = get_todays_filled_orders()
-    send_fill_status_to_slack(filled_orders)

@@ -8,7 +8,15 @@ from clients import (get_alpaca_historical_stock_data_client,
                      get_bear_lake_client)
 from prefect import flow, task
 from utils import get_last_market_date
-from variables import FACTORS, TIME_ZONE
+from variables import TIME_ZONE
+
+FACTORS = sorted([
+    'SPY',
+    'VLUE',
+    'QUAL',
+    'MTUM',
+    'USMV'
+])
 
 
 @task
